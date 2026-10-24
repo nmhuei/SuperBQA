@@ -1,0 +1,28 @@
+{
+  "name": "@rctf/cli",
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "rctf": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "bun src/index.ts",
+    "build": "bun run ./build.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rctf/api": "workspace:*",
+    "@rctf/config": "workspace:*",
+    "@rctf/db": "workspace:*",
+    "@rctf/types": "workspace:*",
+    "@rctf/util": "workspace:*",
+    "citty": "0.2.2"
+  },
+  "devDependencies": {
+    "@rctf/build": "workspace:*",
+    "@types/bun": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

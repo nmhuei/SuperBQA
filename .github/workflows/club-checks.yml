@@ -1,0 +1,43 @@
+name: Club operations checks
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/club-checks.yml'
+      - '.dockerignore'
+      - 'deploy/club/**'
+      - 'deploy/rctf/**'
+      - 'scripts/club-*'
+  push:
+    paths:
+      - '.github/workflows/club-checks.yml'
+      - '.dockerignore'
+      - 'deploy/club/**'
+      - 'deploy/rctf/**'
+      - 'scripts/club-*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: club-ops-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Check scripts and backup safety
+        run: |
+          bash -n scripts/club-ops.sh
+          shellcheck scripts/club-ops.sh
+          python3 -m unittest discover -s deploy/club -p 'test_*.py'
+      - name: Validate generated Compose configuration
+        run: |
+          export CLUB_STATE_DIR="$RUNNER_TEMP/club-ops-ci"
+          ./scripts/club-ops.sh init http://127.0.0.1:8081 club-ops-ci 8081
+          ./scripts/club-ops.sh validate

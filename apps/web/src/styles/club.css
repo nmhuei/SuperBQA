@@ -1,0 +1,177 @@
+/* UCS visual system: quiet panels, yellow-lime accents on the native competition layout. */
+:root {
+  --club-lime: #d6f344;
+  --club-ink: #151619;
+  --club-paper: #f0f1e9;
+  --club-panel: light-dark(#ffffff, #1d1f21);
+  --club-panel-raised: light-dark(#e9ece0, #25292d);
+  --club-border: light-dark(#b5bbaa, #3d4140);
+  --club-muted: light-dark(#50594e, #aab2ad);
+  --club-accent-text: light-dark(#435900, #d6f344);
+  --club-accent-soft: light-dark(#e7f0b8, #30361c);
+  --club-dot: light-dark(#65735b0a, #d6f34408);
+  --font-display: 'Barlow Condensed', 'Outfit', sans-serif;
+
+  --background-l0: light-dark(#f1f2e9, #151619);
+  --background-l1: var(--club-panel);
+  --background-l2: light-dark(#f0f2ed, #22262a);
+  --background-l3: var(--club-panel-raised);
+  --background-l4: light-dark(#e4e8e2, #2b3035);
+  --background-l5: light-dark(#dbe0d9, #363d42);
+  --foreground-l0: light-dark(#1b1f1d, #e9eeeb);
+  --foreground-l1: light-dark(#343c35, #c9d1cd);
+  --foreground-l2: light-dark(#434d43, #b5bfba);
+  --foreground-l3: light-dark(#505b4f, #a0aba4);
+  --foreground-l4: light-dark(#596557, #89968e);
+  --foreground-l5: light-dark(#63705f, #7c8981);
+  --border: var(--club-border);
+  --ring: var(--club-accent-text);
+  --background-accent: var(--club-lime);
+  --background-accent-hover: #e2fa79;
+  --foreground-accent: #242a10;
+  --foreground-prose: var(--foreground-l1);
+  --foreground-prose-link: var(--club-accent-text);
+  --background-self-l0: light-dark(#edf3e4, #283128);
+  --background-self-l1: light-dark(#e2edce, #344033);
+  --foreground-self-l0: var(--club-accent-text);
+  --foreground-self-l1: light-dark(#587640, #b7d298);
+
+  --header-height: 4.5rem;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  color: var(--club-ink);
+  background: var(--club-lime);
+}
+
+:root body :is(ui-card, status-card) {
+  border: 1px solid var(--club-border);
+}
+
+:root body card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+:root body status-title {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+:root body :is(button, a)[data-variant='default'] {
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+:root body [data-scope='menu'][data-part='content'],
+:root body [data-scope='dialog'][data-part='content'] {
+  border: 1px solid var(--club-border);
+  box-shadow: 0 12px 36px light-dark(#29332814, #00000033);
+}
+
+:root body [data-scope='menu'][data-part='item'][data-highlighted] {
+  color: var(--club-accent-text);
+  background: var(--club-accent-soft);
+}
+
+:root body [data-scope='dialog'][data-part='title'] {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Auth stays focused on the real rCTF authentication forms. */
+:root body auth-layout {
+  padding-block: clamp(2rem, 7vh, 6rem);
+}
+
+:root body auth-container {
+  max-inline-size: 30rem;
+}
+
+:root body auth-container ui-card {
+  position: relative;
+  gap: 1.5rem;
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+:root body auth-container card-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 2.5rem);
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+:root body auth-container button[type='submit'] {
+  min-block-size: 2.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+:root body profile-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+}
+
+:root body .club-header button[aria-label='Toggle theme'] {
+  min-block-size: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 1.125rem;
+  border: 1px solid var(--club-border);
+  background: transparent;
+}
+
+
+/* Category skins apply color and texture without altering native geometry. */
+:root body [data-category-color='red'] { --category-skin: #d1a7a0; }
+:root body [data-category-color='orange'] { --category-skin: #c7af92; }
+:root body [data-category-color='yellow'] { --category-skin: #d5c799; }
+:root body [data-category-color='green'] { --category-skin: #b4c99e; }
+:root body [data-category-color='teal'] { --category-skin: #9bbfba; }
+:root body [data-category-color='sky'] { --category-skin: #a5c6d7; }
+:root body [data-category-color='violet'] { --category-skin: #b9b5d5; }
+:root body [data-category-color='plum'] { --category-skin: #c7b0d0; }
+:root body [data-category-color='crimson'] { --category-skin: #d0a4ba; }
+:root body [data-category-color='gray'] { --category-skin: #acb9b1; }
+:root body [data-category-color] {
+  --category-foreground-l0: var(--foreground-l0);
+  --category-foreground-l1: light-dark(color-mix(in srgb, var(--category-skin) 30%, #263025), var(--category-skin));
+  --category-background-l0: color-mix(in srgb, var(--category-skin) 15%, var(--background-l1));
+  --category-background-l1: color-mix(in srgb, var(--category-skin) 5%, var(--background-l1));
+  --category-background-l1-hover: color-mix(in srgb, var(--category-skin) 13%, var(--background-l1));
+}
+/* Header slices share a single illustration; category colors stay in the icon and edge. */
+:root body challenges-list-group-header button {
+  background-color: var(--background-l2);
+  box-shadow: inset 3px 0 var(--category-skin);
+}
+:root body challenges-list-group-body li + li {
+  border-block-start: 1px solid color-mix(in srgb, var(--category-skin) 12%, transparent);
+}
+:root body challenges-list-group-body button[data-selected] {
+  box-shadow: inset 3px 0 var(--category-skin), inset 0 0 0 1px color-mix(in srgb, var(--category-skin) 25%, transparent);
+}
+:root body details-header header-score [data-slot='points'] { color: var(--club-accent-text); }
+:root body list-scroll { scrollbar-gutter: stable; }
+:root body :is(list-scroll, details-scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--club-border) transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root body challenges-list-group-header [data-slot='chevron'] { transition: none; }
+}
+
+:root body challenge-submit button[type='submit']:not(:disabled) {
+  color: var(--club-ink);
+  background: var(--club-lime);
+}

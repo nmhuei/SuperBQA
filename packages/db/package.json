@@ -1,0 +1,30 @@
+{
+  "name": "@rctf/db",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./util": "./src/util/index.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "pull": "drizzle-kit pull",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rctf/config": "workspace:*",
+    "@rctf/types": "workspace:*",
+    "drizzle-kit": "0.31.10",
+    "drizzle-orm": "catalog:",
+    "postgres": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

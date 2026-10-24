@@ -1,0 +1,26 @@
+# Public configuration only. Secrets come from .env through Compose.
+ctfName: UCS
+meta:
+  description: UCS cybersecurity club. Explore challenges, sharpen your skills, and compete.
+  imageUrl: ''
+homeContent: 'Explore challenges, submit flags, and climb the leaderboard.'
+# init replaces these with the current time and a 72-hour event window.
+startTime: 0
+endTime: 0
+divisions:
+  open: Open
+registrationsEnabled: true
+userMembers: true
+maxMembers: 50
+flagFormatPlaceholder: 'rctf{your_flag_here}'
+uploadProvider:
+  name: uploads/local
+proxy:
+  # Bundled nginx plus exactly one trusted reverse proxy on this host.
+  trust: 2
+  cloudflare: false
+# Configure RCTF_SMTP_URL in .env, then uncomment this block for verified email.
+# email:
+#   from: 'UCS <ctf@example.com>'
+#   provider:
+#     name: emails/smtp

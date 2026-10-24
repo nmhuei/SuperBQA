@@ -1,0 +1,23 @@
+{
+  "name": "@rctf/admin-bot",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "build": "bun run ./build.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@puppeteer/browsers": "3.2.4",
+    "@rctf/util": "workspace:*",
+    "hono": "catalog:",
+    "pino": "catalog:",
+    "puppeteer-core": "25.13.0"
+  },
+  "devDependencies": {
+    "@rctf/build": "workspace:*",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

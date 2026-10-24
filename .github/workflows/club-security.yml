@@ -1,0 +1,57 @@
+name: Club security checks
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: '19 3 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: club-security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install checksum-pinned security tools
+        run: |
+          ./scripts/club-security-tools.sh "$RUNNER_TEMP/security-tools" gitleaks trivy actionlint
+          echo "$RUNNER_TEMP/security-tools" >> "$GITHUB_PATH"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - name: Validate workflow, shell scripts, and scan guards
+        run: |
+          actionlint .github/workflows/club-security.yml .github/workflows/ci.yml
+          bash -n scripts/club-security.sh scripts/club-security-tools.sh
+          shellcheck scripts/club-security.sh scripts/club-security-tools.sh
+          ./scripts/club-security.sh self-test
+      - name: Detect secrets in distributable source
+        if: ${{ !cancelled() }}
+        run: ./scripts/club-security.sh secrets
+      - name: Audit locked dependencies including development tools
+        if: ${{ !cancelled() }}
+        run: ./scripts/club-security.sh dependencies
+      - name: Check club container configuration
+        if: ${{ !cancelled() }}
+        run: ./scripts/club-security.sh configuration
+      - name: Generate source dependency inventory
+        id: sbom
+        if: ${{ !cancelled() }}
+        run: ./scripts/club-security.sh sbom "$RUNNER_TEMP/club-source.cdx.json"
+      - name: Retain source SBOM
+        if: ${{ !cancelled() && steps.sbom.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: club-source-sbom-${{ github.sha }}
+          path: ${{ runner.temp }}/club-source.cdx.json
+          if-no-files-found: error
+          retention-days: 14

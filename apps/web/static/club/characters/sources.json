@@ -1,0 +1,114 @@
+{
+  "source": "Official Zenless Zone Zero character site / HoYoverse CDN",
+  "api_url": "https://sg-public-api-static.hoyoverse.com/content_v2_user/app/3e9196a4b9274bd7/getContentList?iPageSize=200&iPage=1&iChanId=287&sLangKey=en-us",
+  "assets": [
+    {
+      "character": "Anby Demara",
+      "local_path": "assets/anby.png",
+      "source_page": "https://zenless.hoyoverse.com/en-us/character",
+      "download_url": "https://fastcdn.hoyoverse.com/content-v2/nap/102103/1cf1ab68f06c0d2115ce382e6804e714_3383703376437037229.png",
+      "dimensions": {
+        "width": 1297,
+        "height": 1369
+      },
+      "bytes": 632086,
+      "png_color_type": 6,
+      "source_field": "new-chara-cover-inner",
+      "source_id": 102103,
+      "sha256": "ee0b29fabb580e485e4e321bd4aeb8dc87e97b8ff3af136a52e960784ec5bef2",
+      "modified": false,
+      "has_transparency": true,
+      "content_bounds": [113, 158, 1002, 1301]
+    },
+    {
+      "character": "Nicole Demara",
+      "local_path": "assets/nicole.png",
+      "source_page": "https://zenless.hoyoverse.com/en-us/character",
+      "download_url": "https://fastcdn.hoyoverse.com/content-v2/nap/102183/346659f4fb213f3075aee813997b9b31_990728217161469939.png",
+      "dimensions": {
+        "width": 1297,
+        "height": 1369
+      },
+      "bytes": 802311,
+      "png_color_type": 6,
+      "source_field": "new-chara-cover-inner",
+      "source_id": 102183,
+      "sha256": "4a8b40b89ebed5d96b3b8c60e71e81a78dcbfe1afa0aea1154d39f5a8fc1bd7f",
+      "modified": false,
+      "has_transparency": true,
+      "content_bounds": [305, 135, 948, 1278]
+    },
+    {
+      "character": "Hoshimi Miyabi",
+      "local_path": "assets/miyabi.png",
+      "source_page": "https://zenless.hoyoverse.com/en-us/character",
+      "download_url": "https://fastcdn.hoyoverse.com/content-v2/nap/103379/a0b6a3fedf5b19a224dad6332f5c9404_8648655379164550438.png",
+      "dimensions": {
+        "width": 1297,
+        "height": 1369
+      },
+      "bytes": 843674,
+      "png_color_type": 6,
+      "source_field": "new-chara-cover-inner",
+      "source_id": 103379,
+      "sha256": "7ede61394d75eb5bd524edca77562cdc71e2f1a6805500a521e4c50e9c464e10",
+      "modified": false,
+      "has_transparency": true,
+      "content_bounds": [257, 57, 1065, 1333]
+    },
+    {
+      "character": "Ellen Joe",
+      "local_path": "assets/ellen.png",
+      "source_page": "https://zenless.hoyoverse.com/en-us/character",
+      "download_url": "https://fastcdn.hoyoverse.com/content-v2/nap/113671/59a98a82a886f49c3b1b89bdc77cbb36_21606237077173472.png",
+      "dimensions": {
+        "width": 1297,
+        "height": 1369
+      },
+      "bytes": 879617,
+      "png_color_type": 6,
+      "source_field": "new-chara-cover-inner",
+      "source_id": 113671,
+      "sha256": "244e51f9a05dabcefef78125872c505d0682a32ac469544096b597a7fac32989",
+      "modified": false,
+      "has_transparency": true,
+      "content_bounds": [109, 165, 1071, 1293]
+    },
+    {
+      "character": "Billy Kid",
+      "local_path": "assets/billy.png",
+      "source_page": "https://zenless.hoyoverse.com/en-us/character",
+      "download_url": "https://fastcdn.hoyoverse.com/content-v2/nap/102184/96e7d507f3aa3a6ccd9de17b97b1c062_6037497242185281511.png",
+      "dimensions": {
+        "width": 1297,
+        "height": 1369
+      },
+      "bytes": 879195,
+      "png_color_type": 6,
+      "source_field": "new-chara-cover-inner",
+      "source_id": 102184,
+      "sha256": "f54e96b6781242600b9c0dac2b532fcae226fc405800a04cdf6dfdd3d51ec3a2",
+      "modified": false,
+      "has_transparency": true,
+      "content_bounds": [278, 70, 1160, 1318]
+    },
+    {
+      "character": "Von Lycaon",
+      "local_path": "assets/lycaon.png",
+      "source_page": "https://zenless.hoyoverse.com/en-us/character",
+      "download_url": "https://fastcdn.hoyoverse.com/content-v2/nap/102529/abe371aa7c6c63bfbeaff9317bf0e92d_4940194306692044383.png",
+      "dimensions": {
+        "width": 1297,
+        "height": 1369
+      },
+      "bytes": 909453,
+      "png_color_type": 6,
+      "source_field": "new-chara-cover-inner",
+      "source_id": 102529,
+      "sha256": "9050a661beaf93a0e6d61e48beeaa65444671989d1071ea79f0d89cab1a0c398",
+      "modified": false,
+      "has_transparency": true,
+      "content_bounds": [227, 160, 1070, 1300]
+    }
+  ]
+}

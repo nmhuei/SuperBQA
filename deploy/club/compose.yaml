@@ -1,0 +1,111 @@
+name: ${COMPOSE_PROJECT_NAME:-rctf-club}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  rctf:
+    image: local/rctf-club:${RCTF_RELEASE:?Run scripts/club-ops.sh init first}
+    pull_policy: never
+    build:
+      context: ../..
+      dockerfile: deploy/rctf/Dockerfile
+    restart: unless-stopped
+    stop_grace_period: 45s
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    ports:
+      - '${RCTF_BIND_ADDRESS:-127.0.0.1}:${RCTF_HTTP_PORT:-8080}:80'
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      RCTF_CONF_PATH: /app/rctf.d
+      RCTF_ORIGIN: ${RCTF_ORIGIN:?Set the public origin}
+      RCTF_TOKEN_KEY: ${RCTF_TOKEN_KEY:?Generate a token key}
+      RCTF_DATABASE_HOST: postgres
+      RCTF_DATABASE_PORT: '5432'
+      RCTF_DATABASE_USERNAME: rctf
+      RCTF_DATABASE_DATABASE: rctf
+      RCTF_DATABASE_PASSWORD: ${RCTF_DATABASE_PASSWORD:?Generate a database password}
+      RCTF_DATABASE_MIGRATE: before
+      RCTF_REDIS_HOST: redis
+      RCTF_REDIS_PORT: '6379'
+      RCTF_REDIS_DATABASE: '0'
+      RCTF_REDIS_PASSWORD: ${RCTF_REDIS_PASSWORD:?Generate a Redis password}
+      RCTF_SMTP_URL: ${RCTF_SMTP_URL:-}
+    volumes:
+      - type: bind
+        source: ${CLUB_CONFIG_DIR:?Use scripts/club-ops.sh to set the config path}
+        target: /app/rctf.d
+        read_only: true
+      - uploads:/app/uploads
+    networks:
+      - edge
+      - database
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'bun', '-e', "const r = await fetch('http://127.0.0.1/api/readyz'); process.exit(r.ok ? 0 : 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    logging: *logging
+
+  postgres:
+    # Baseline pinned by the upstream repository. Upgrade deliberately after a drill.
+    image: postgres:18.0
+    restart: unless-stopped
+    stop_grace_period: 60s
+    environment:
+      POSTGRES_USER: rctf
+      POSTGRES_DB: rctf
+      POSTGRES_PASSWORD: ${RCTF_DATABASE_PASSWORD:?Generate a database password}
+    volumes:
+      # PostgreSQL 18 uses a versioned PGDATA beneath this directory.
+      - postgres:/var/lib/postgresql
+    networks:
+      - database
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *logging
+
+  redis:
+    image: redis:8.2.6
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      REDIS_PASSWORD: ${RCTF_REDIS_PASSWORD:?Generate a Redis password}
+    command: ['sh', '-c', 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis:/data
+    networks:
+      - database
+    healthcheck:
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *logging
+
+volumes:
+  postgres:
+  redis:
+  uploads:
+
+networks:
+  edge:
+  database:
+    internal: true

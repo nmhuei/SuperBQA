@@ -1,0 +1,44 @@
+{
+  "name": "@rctf/api",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "cd ../../; bun --watch --no-orphans apps/api/src/index.ts",
+    "start": "bun src/index.ts",
+    "build": "bun run ./build.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1111.0",
+    "@aws-sdk/client-ses": "3.1111.0",
+    "@fastify/proxy-addr": "5.1.0",
+    "@google-cloud/storage": "8.0.0",
+    "@kubernetes/client-node": "2.0.0",
+    "@rctf/config": "workspace:*",
+    "@rctf/db": "workspace:*",
+    "@rctf/scoring": "workspace:*",
+    "@rctf/types": "workspace:*",
+    "@rctf/util": "workspace:*",
+    "data-uri-to-buffer": "8.0.0",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:",
+    "hono-pino": "0.10.3",
+    "ioredis": "6.0.0",
+    "mustache": "catalog:",
+    "nodemailer": "10.1.4",
+    "openai": "7.4.0",
+    "pino": "catalog:",
+    "postgres": "catalog:",
+    "sharp": "0.35.5",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rctf/build": "workspace:*",
+    "@types/bun": "catalog:",
+    "@types/mustache": "4.2.6",
+    "@types/nodemailer": "8.0.1"
+  },
+  "peerDependencies": {
+    "typescript": "catalog:"
+  }
+}

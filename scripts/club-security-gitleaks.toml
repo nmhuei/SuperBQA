@@ -1,0 +1,34 @@
+title = "Club source scan: default rules plus exact public fixture exceptions"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Two fixed public development-seed credentials; never use the seed in production."
+condition = "AND"
+paths = ['''(^|/)apps/cli/src/commands/seed/data\.ts$''']
+regexes = [
+  '''^rjw8TxDq9lzG2YJxsQIANLhwMDOa7RgV2rVfUnT_kO8$''',
+  '''^Vt3c5nJpXq0L8sYbR2wKfH7mZdA4gUeT1oCiNxP6lBk$''',
+]
+
+[[rules.allowlists]]
+description = "Public example decodes to 'this is a base64 key example!'."
+condition = "AND"
+paths = ['''(^|/)apps/docs/src/content/docs/configuration\.md$''']
+regexes = ['''^dGhpcyBpcyBhIGJhc2U2NCBrZXkgZXhhbXBsZSE=$''']
+
+[[rules.allowlists]]
+description = "Public R2 example repeats the hexadecimal alphabet four times."
+condition = "AND"
+paths = ['''(^|/)apps/docs/src/content/docs/providers/uploads\.md$''']
+regexes = ['''^(0123456789abcdef){4}$''']
+
+[[rules.allowlists]]
+description = "Multiline generic-key match captures a public poll interval after <shared-secret>."
+condition = "AND"
+paths = ['''(^|/)apps/docs/src/content/docs/integrations/admin-bot\.md$''']
+regexes = ['''^POLL_INTERVAL_MS=5000$''']
