@@ -11,6 +11,7 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadName,
+  BadPerms,
   BadRateLimit,
   BadRecaptchaCode,
   BadRegistrationsDisabled,
@@ -102,7 +103,7 @@ export const LoginRoute = defineRoute({
       })
     ),
   goodResponses: [GoodLogin],
-  badResponses: [BadUnknownUser, BadTokenVerification, BadCtftimeToken],
+  badResponses: [BadUnknownUser, BadTokenVerification, BadCtftimeToken, BadPerms],
   authRequired: false,
 })
 
@@ -143,6 +144,7 @@ export const VerifyRoute = defineRoute({
     BadKnownEmail,
     BadKnownName,
     BadUnknownUser,
+    BadPerms,
   ],
   authRequired: false,
 })

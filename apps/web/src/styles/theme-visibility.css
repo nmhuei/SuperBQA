@@ -2,19 +2,10 @@
   display: contents;
 }
 
-:root[data-theme='dark'] [data-theme-visible='light'],
-:root[data-theme='light'] [data-theme-visible='dark'] {
-  display: none;
+[data-theme-visible='light'] {
+  display: none !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) [data-theme-visible='light'] {
-    display: none;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) [data-theme-visible='dark'] {
-    display: none;
-  }
+[data-theme-visible='dark'] {
+  display: contents !important;
 }

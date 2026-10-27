@@ -33,6 +33,7 @@ import {
   getResolvedSettings,
   type CompetitionTiming,
 } from '../services/settings'
+import { checkTeamIpLimit } from '../services/anticheat'
 import { getUser } from '../services/users'
 import { validateCaptcha } from '../util/captcha'
 import type { ApiContext, AppEnv } from './app-env'
@@ -40,6 +41,9 @@ import { parseToken, TokenKind } from './tokens'
 
 const AUTH_PREFIX = 'Bearer '
 type JsonResponse = [Record<string, unknown>, ContentfulStatusCode]
+
+export const BANNED_TEAM_MESSAGE =
+  'Your team has been banned. If you have any questions, please open a ticket on our Discord server.'
 
 export interface DeclaredRoute<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition,
@@ -50,19 +54,25 @@ export interface DeclaredRoute<
 }
 
 const buildResponders = <TResponses extends readonly ResponseDefinition[]>(
-  responses: TResponses
+  responses: TResponses,
+  getUserState?: () => User | undefined
 ): ResponseHelpers<TResponses> => {
   const responders = Object.create(null) as Record<string, ResponseHelper<any>>
 
   for (const def of responses) {
     responders[def.kind] = (payload?: unknown): ResponseResult<typeof def> => {
+      let message = def.message
+      if (def.kind === BadPerms.kind && getUserState?.()?.banned) {
+        message = BANNED_TEAM_MESSAGE
+      }
+
       const body = def.dataSchema
         ? {
             kind: def.kind,
-            message: def.message,
+            message,
             data: def.dataSchema.parse(payload),
           }
-        : { kind: def.kind, message: def.message }
+        : { kind: def.kind, message }
 
       return { status: def.status, body, definition: def } as ResponseResult<
         typeof def
@@ -105,8 +115,11 @@ const respond = {
     BadBody.status as ContentfulStatusCode,
   ],
 
-  accessDenied: (): JsonResponse => [
-    { kind: BadPerms.kind, message: BadPerms.message },
+  accessDenied: (isBanned?: boolean): JsonResponse => [
+    {
+      kind: BadPerms.kind,
+      message: isBanned ? BANNED_TEAM_MESSAGE : BadPerms.message,
+    },
     BadPerms.status as ContentfulStatusCode,
   ],
 
@@ -226,10 +239,9 @@ export const declareRouter = <
     ...definition.goodResponses,
     ...definition.badResponses,
   ] as const
-  const responders = buildResponders(allResponses)
-
   const createHandler = (): Handler<AppEnv> => async context => {
     let user: User | undefined
+    const responders = buildResponders(allResponses, () => user)
     let timing: CompetitionTiming | undefined
     const loadTiming = async () => {
       timing ??= await getCompetitionTiming(context.var.db, context.var.redis)
@@ -248,15 +260,42 @@ export const declareRouter = <
         return context.json(...respond.unauthorized())
       }
 
+      if (user.banned) {
+        return context.json(...respond.accessDenied(true))
+      }
+
       if (
         definition.permissions &&
         !hasPermissions(user, definition.permissions)
       ) {
-        return context.json(...respond.accessDenied())
+        return context.json(...respond.accessDenied(false))
       }
 
       if (definition.rejectBanned && user.banned) {
-        return context.json(...respond.accessDenied())
+        return context.json(...respond.accessDenied(true))
+      }
+
+      // Anti-Cheat: 4 distinct IPs limit per team
+      const ipCheck = await checkTeamIpLimit(
+        context.var.redis,
+        user,
+        context.var.ip,
+        context.req.path,
+        context.req.method
+      )
+      if (!ipCheck.allowed) {
+        return context.json(
+          {
+            kind: 'badTeamIpLimit',
+            message:
+              'Team has reached the maximum limit of 4 devices/IPs. Device #5 has been blocked and a security violation has been reported to organizers.',
+            data: {
+              maxIps: 4,
+              activeIps: ipCheck.activeIps,
+            },
+          },
+          403
+        )
       }
     } else if (wantsOptionalAuth) {
       user = await getAuthenticatedUser(context)
@@ -389,6 +428,10 @@ export const declareRouter = <
     } as RouteHandlerArgs<ApiContext, User, typeof definition>
 
     const result = await handler(handlerArgs)
+
+    if (result instanceof Response) {
+      return result
+    }
 
     if (definition.returnBodyAsIs) {
       return context.json(

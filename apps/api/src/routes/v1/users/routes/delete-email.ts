@@ -4,6 +4,9 @@ import { deleteEmail } from '../../../../services/users'
 import usersGroup from '../group'
 
 usersGroup.route(DeleteEmailRoute, async ({ ctx, res, user }) => {
+  if (user.perms > 0) {
+    return res.badEndpoint()
+  }
   if (!config.email) {
     return res.badEndpoint()
   }

@@ -20,13 +20,13 @@ import type {
   BadAlreadySolvedChallenge,
   BadChallenge,
   BadFlag,
-  BadPerms,
   BadRateLimit,
   BadUnknownUser,
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
 import {
+  BadPerms,
   ChallengeScoringKind,
   SubmissionKind,
   SubmissionResult,
@@ -1158,7 +1158,15 @@ export const submitFlag = async (
   }
 
   if (submitter.banned) {
-    return res.badPerms()
+    return {
+      status: 403,
+      body: {
+        kind: 'badPerms',
+        message:
+          'Your team has been banned. If you have any questions, please open a ticket on our Discord server.',
+      },
+      definition: BadPerms,
+    } as never
   }
 
   const challenge = await getChallenge(db, params.challengeId)

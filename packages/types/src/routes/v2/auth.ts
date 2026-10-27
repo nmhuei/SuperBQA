@@ -12,6 +12,7 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadName,
+  BadPerms,
   BadRateLimit,
   BadRegistrationsDisabled,
   BadTokenVerification,
@@ -92,6 +93,7 @@ export const VerifyRouteV2 = defineRoute({
     BadKnownEmail,
     BadKnownName,
     BadUnknownUser,
+    BadPerms,
   ],
   authRequired: false,
 })

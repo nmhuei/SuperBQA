@@ -457,7 +457,7 @@
     />
   {:else}
     <div class="detail-placeholder">
-      <ClubDetailGeometry />
+      <ClubDetailGeometry seed={archiveId} />
       <EmptyState
         icon={location.challengeId ? IconQuestion : IconFlagBanner}
         title={location.challengeId

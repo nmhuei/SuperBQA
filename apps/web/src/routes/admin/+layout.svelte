@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { IconSignIn, IconWarningCircle } from '$lib/icons'
+  import { browser } from '$app/environment'
+  import { goto } from '$app/navigation'
+  import { IconWarningCircle } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
   import Button from '$lib/ui/button.svelte'
@@ -16,6 +18,13 @@
   const ctfName = $derived(configQuery.data?.ctfName)
   const isPending = $derived(userQuery.isLoading || configQuery.isLoading)
   const gate = $derived(decideAdminGate(userQuery.data))
+
+  // Immediately kick unauthorized users back to home
+  $effect(() => {
+    if (browser && !isPending && gate !== 'ok') {
+      void goto('/', { replaceState: true })
+    }
+  })
 </script>
 
 <svelte:head>
@@ -28,24 +37,14 @@
   <admin-status>
     <Spinner />
   </admin-status>
-{:else if gate === 'loggedOut'}
-  <admin-status>
-    <StatusCard
-      icon={IconSignIn}
-      title="Admin access required"
-      subtitle="You need to be logged in with an administrator account to view this page."
-    >
-      <Button href="/login">Login</Button>
-    </StatusCard>
-  </admin-status>
-{:else if gate === 'noPerms'}
+{:else if gate !== 'ok'}
   <admin-status>
     <StatusCard
       icon={IconWarningCircle}
-      title="Access denied"
-      subtitle="Your account does not have permission to view the admin panel."
+      title="Access Denied"
+      subtitle="Only authorized administrators are permitted to access this area. Redirecting to home…"
     >
-      <Button href="/">Home</Button>
+      <Button href="/">Return to Home</Button>
     </StatusCard>
   </admin-status>
 {:else}

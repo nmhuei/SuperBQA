@@ -5,7 +5,6 @@
   import { page } from '$app/state'
   import { isNavigationPathActive } from '$lib/club/archive-model'
   import NavigationBrand from '$lib/components/navigation-brand.svelte'
-  import ThemeToggle from '$lib/components/theme-toggle.svelte'
   import {
     IconCopy,
     IconFlagBannerFold,
@@ -110,7 +109,6 @@
         {/each}
       </nav>
       <sheet-footer>
-        <ThemeToggle />
         {#if user && !isArchived}
           {@const currentUser = user}
           <footer-actions>

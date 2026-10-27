@@ -1,23 +1,23 @@
-/* UCS visual system: quiet panels, yellow-lime accents on the native competition layout. */
+/* UCS visual system: cyber dark panels, neon green accents on the competition layout. */
 :root {
-  --club-lime: #d6f344;
-  --club-ink: #151619;
+  --club-lime: #00ff66;
+  --club-ink: #080c0a;
   --club-paper: #f0f1e9;
-  --club-panel: light-dark(#ffffff, #1d1f21);
-  --club-panel-raised: light-dark(#e9ece0, #25292d);
-  --club-border: light-dark(#b5bbaa, #3d4140);
-  --club-muted: light-dark(#50594e, #aab2ad);
-  --club-accent-text: light-dark(#435900, #d6f344);
-  --club-accent-soft: light-dark(#e7f0b8, #30361c);
-  --club-dot: light-dark(#65735b0a, #d6f34408);
-  --font-display: 'Barlow Condensed', 'Outfit', sans-serif;
+  --club-panel: light-dark(#ffffff, rgba(13, 20, 16, 0.90));
+  --club-panel-raised: light-dark(#e9ece0, rgba(19, 28, 22, 0.94));
+  --club-border: light-dark(#b5bbaa, #1b2920);
+  --club-muted: light-dark(#50594e, #8aa193);
+  --club-accent-text: light-dark(#008f37, #00ff66);
+  --club-accent-soft: light-dark(#dcfce7, #002e13);
+  --club-dot: light-dark(#65735b0a, #00ff6615);
+  --font-display: 'Bai Jamjuree', 'Barlow Condensed', sans-serif;
 
-  --background-l0: light-dark(#f1f2e9, #151619);
+  --background-l0: light-dark(#f1f2e9, #080c0a);
   --background-l1: var(--club-panel);
-  --background-l2: light-dark(#f0f2ed, #22262a);
+  --background-l2: light-dark(#f0f2ed, #101913);
   --background-l3: var(--club-panel-raised);
-  --background-l4: light-dark(#e4e8e2, #2b3035);
-  --background-l5: light-dark(#dbe0d9, #363d42);
+  --background-l4: light-dark(#e4e8e2, #17241c);
+  --background-l5: light-dark(#dbe0d9, #1e2e24);
   --foreground-l0: light-dark(#1b1f1d, #e9eeeb);
   --foreground-l1: light-dark(#343c35, #c9d1cd);
   --foreground-l2: light-dark(#434d43, #b5bfba);
@@ -27,14 +27,14 @@
   --border: var(--club-border);
   --ring: var(--club-accent-text);
   --background-accent: var(--club-lime);
-  --background-accent-hover: #e2fa79;
-  --foreground-accent: #242a10;
+  --background-accent-hover: #1aff75;
+  --foreground-accent: #080c0a;
   --foreground-prose: var(--foreground-l1);
   --foreground-prose-link: var(--club-accent-text);
-  --background-self-l0: light-dark(#edf3e4, #283128);
-  --background-self-l1: light-dark(#e2edce, #344033);
+  --background-self-l0: light-dark(#edf3e4, #002e13);
+  --background-self-l1: light-dark(#e2edce, #00441c);
   --foreground-self-l0: var(--club-accent-text);
-  --foreground-self-l1: light-dark(#587640, #b7d298);
+  --foreground-self-l1: light-dark(#587640, #00ff66);
 
   --header-height: 4.5rem;
 }
@@ -50,6 +50,15 @@ body {
 
 :root body :is(ui-card, status-card) {
   border: 1px solid var(--club-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+:root body header {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--club-border);
 }
 
 :root body card-title {
@@ -60,10 +69,10 @@ body {
 
 :root body status-title {
   font-family: var(--font-display);
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-style: italic;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 :root body :is(button, a)[data-variant='default'] {
@@ -105,15 +114,15 @@ body {
 
 :root body auth-container card-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 6vw, 2.5rem);
+  font-size: 1.75rem;
   font-style: italic;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 :root body auth-container button[type='submit'] {
   min-block-size: 2.75rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 

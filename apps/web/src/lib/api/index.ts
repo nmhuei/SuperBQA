@@ -1,4 +1,5 @@
 import {
+  BadPerms,
   BadRateLimit,
   BadToken,
   isFileField,
@@ -146,11 +147,15 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
   const definitions: ResponseDefinition[] = [
     ...route.goodResponses,
     ...route.badResponses,
+    BadPerms,
   ]
   const definition = definitions.find(
     definition => definition.kind === envelope.kind
   )
   if (!definition) {
+    if (envelope.kind === 'badTeamIpLimit') {
+      return envelope as RouteResponse<TRoute>
+    }
     throw new Error(`Unknown response kind: ${JSON.stringify(payload)}`)
   }
 

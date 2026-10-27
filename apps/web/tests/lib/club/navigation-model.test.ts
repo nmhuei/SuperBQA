@@ -13,7 +13,7 @@ describe('role navigation', () => {
         access: guest,
       })
       expect(paths(nav.main)).toEqual(['/', '/rules', '/challenges', '/scores'])
-      expect(nav.main[0]?.label).toBe('Event')
+      expect(nav.main[0]?.label).toBe('Home')
       expect(nav.admin).toEqual([])
     })
     test(`Member adds private destinations in ${mode} mode`, () => {

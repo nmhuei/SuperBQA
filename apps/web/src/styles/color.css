@@ -1,7 +1,7 @@
 :root {
-  --gray-1:   light-dark(#fcfcfc, #111111);
-  --gray-2:   light-dark(#f9f9f9, #191919);
-  --gray-3:   light-dark(#f0f0f0, #222222);
+  --gray-1:   light-dark(#fcfcfc, #080c0a);
+  --gray-2:   light-dark(#f9f9f9, #0d1410);
+  --gray-3:   light-dark(#f0f0f0, #131c16);
   --gray-4:   light-dark(#e8e8e8, #2a2a2a);
   --gray-5:   light-dark(#e0e0e0, #313131);
   --gray-6:   light-dark(#d9d9d9, #3a3a3a);
@@ -694,10 +694,8 @@
 [data-series-role='r9']     { color: var(--foreground-ninth); }
 [data-series-role='r10']    { color: var(--foreground-tenth); }
 
-:root[data-theme='light'] {
-  color-scheme: light;
-}
-
+:root,
+:root[data-theme='light'],
 :root[data-theme='dark'] {
   color-scheme: dark;
 }

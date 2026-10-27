@@ -1,55 +1,47 @@
 <script lang="ts">
-  import { getChallengeArt } from '$lib/club/challenge-art'
+  import {
+    getChallengeArt,
+    categoryPortraits,
+    categoryAliases,
+  } from '$lib/club/challenge-art'
 
   type Props = { id: string; category: string; index?: number; count?: number }
   let { id, category, index = 0, count = 1 }: Props = $props()
   let width = $state(0)
   let height = $state(0)
-  const key = $derived(category.trim().toLowerCase())
-  const portraits = new Map([
-    ['web', 'anby'],
-    ['crypto', 'miyabi'],
-    ['cryptography', 'miyabi'],
-    ['forensics', 'nicole'],
-    ['pwn', 'billy'],
-    ['binary', 'billy'],
-    ['reverse', 'ellen'],
-    ['rev', 'ellen'],
-    ['misc', 'lycaon'],
-    ['blockchain', 'miyabi'],
-    ['osint', 'nicole'],
-    ['koth', 'billy'],
-    ['ad', 'ellen'],
-    ['sanity', 'anby'],
-    ['ppc', 'lycaon'],
-  ])
-  const portrait = $derived(portraits.get(key) ?? 'lycaon')
-  const color = $derived(getChallengeArt(id, category).color)
+
+  const catKey = $derived(category.trim().toLowerCase())
+  const canonicalCategory = $derived(categoryAliases.get(catKey) ?? catKey)
+  const portrait = $derived(categoryPortraits.get(catKey) ?? 'lycaon')
+
+  const art = $derived(getChallengeArt(id, category))
+  const color = $derived(art.color)
   const canvasWidth = $derived(width || 480)
   const rowHeight = $derived(height || 96)
   const stripStart = $derived(Math.floor(index / 6) * 6)
   const stripRows = $derived(Math.max(1, Math.min(6, count - stripStart)))
   const canvasHeight = $derived(rowHeight * stripRows)
   const offset = $derived((index % 6) * rowHeight)
+
   const imageWidth = $derived(Math.max(canvasWidth * 1.12, canvasHeight * 1.7))
   const imageHeight = $derived((imageWidth * 1369) / 1297)
   const imageX = $derived(
     canvasWidth * 0.52 -
       imageWidth *
-        (portrait === 'miyabi' && canvasWidth < 600
+        ((portrait === 'miyabi' || portrait === 'crypto') && canvasWidth < 600
           ? 0.43
-          : portrait === 'billy'
+          : portrait === 'billy' || portrait === 'pwn'
             ? 0.54
             : 0.5)
   )
   const imageY = $derived(
     canvasHeight * 0.08 -
       imageHeight *
-        (portrait === 'miyabi'
+        (portrait === 'miyabi' || portrait === 'crypto'
           ? 0.26
-          : portrait === 'nicole'
+          : portrait === 'nicole' || portrait === 'forensics'
             ? 0.11
-            : portrait === 'billy'
+            : portrait === 'billy' || portrait === 'pwn'
               ? 0.075
               : 0.14)
   )
@@ -70,51 +62,96 @@
     focusable="false"
   >
     <defs>
+      <!-- Cyber Matrix Grid Pattern -->
       <pattern
-        id={`${instanceId}-grid`}
-        width="36"
-        height="36"
+        id={`${instanceId}-cyber-grid`}
+        width="28"
+        height="28"
         patternUnits="userSpaceOnUse"
       >
         <path
-          d="M36 0H0V36"
+          d="M 28 0 L 0 0 0 28"
           fill="none"
           stroke="currentColor"
-          stroke-opacity="0.12"
-          stroke-width="0.7"
+          stroke-opacity="0.1"
+          stroke-width="0.75"
         />
+        <circle cx="0" cy="0" r="0.8" fill="currentColor" opacity="0.25" />
       </pattern>
+
+      <!-- Glow filter -->
+      <filter id={`${instanceId}-glow`} x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="2" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
     </defs>
+
+    <!-- Base Grid Layer -->
     <rect
       width={canvasWidth}
       height={canvasHeight}
-      fill={`url(#${instanceId}-grid)`}
+      fill={`url(#${instanceId}-cyber-grid)`}
     />
-    <g stroke="currentColor" fill="none" opacity="0.18">
+
+    <!-- Pure Vector Graphical Motifs (PCB Tracks, Hexagonal Energy & Radar) -->
+    <g class="hacker-graphics" stroke="currentColor" fill="none">
+      <!-- Circuit Traces -->
+      <path
+        d={`M ${canvasWidth * 0.15} ${offset + rowHeight * 0.2} L ${canvasWidth * 0.35} ${offset + rowHeight * 0.2} L ${canvasWidth * 0.45} ${offset + rowHeight * 0.75} L ${canvasWidth * 0.85} ${offset + rowHeight * 0.75}`}
+        stroke-width="1.2"
+        opacity="0.3"
+      />
+      <circle cx={canvasWidth * 0.15} cy={offset + rowHeight * 0.2} r="2.5" fill="currentColor" opacity="0.6" />
+      <circle cx={canvasWidth * 0.85} cy={offset + rowHeight * 0.75} r="2.5" fill="currentColor" opacity="0.6" />
+
+      <!-- Concentric Radar / Sonar Arcs -->
       <circle
-        cx={canvasWidth * 0.63}
-        cy={canvasHeight * 0.57}
-        r={canvasHeight * 0.69}
+        cx={canvasWidth * 0.65}
+        cy={offset + rowHeight * 0.5}
+        r={rowHeight * 0.7}
+        stroke-width="0.8"
+        stroke-dasharray="4 4"
+        opacity="0.2"
       />
       <circle
-        cx={canvasWidth * 0.63}
-        cy={canvasHeight * 0.57}
-        r={canvasHeight * 0.76}
+        cx={canvasWidth * 0.65}
+        cy={offset + rowHeight * 0.5}
+        r={rowHeight * 1.1}
+        stroke-width="1"
+        opacity="0.15"
+      />
+
+      <!-- Tactical Corner Targeting Reticle -->
+      <path
+        d={`M ${canvasWidth * 0.05} ${offset + 14} H ${canvasWidth * 0.05 + 16} M ${canvasWidth * 0.05} ${offset + 14} V ${offset + 30}`}
+        stroke-width="1.5"
+        stroke="var(--club-lime, #00ff66)"
+        opacity="0.5"
       />
       <path
-        d={`M${canvasWidth * 0.03} ${canvasHeight * 0.85} ${canvasWidth * 0.4} ${canvasHeight * 0.07}H${canvasWidth * 0.9}`}
+        d={`M ${canvasWidth * 0.95} ${offset + rowHeight - 14} H ${canvasWidth * 0.95 - 16} M ${canvasWidth * 0.95} ${offset + rowHeight - 14} V ${offset + rowHeight - 30}`}
+        stroke-width="1.5"
+        stroke="var(--club-lime, #00ff66)"
+        opacity="0.5"
       />
     </g>
+
+    <!-- Watermark Category Display Text -->
     <text
       x={canvasWidth * 0.045}
-      y={canvasHeight * 0.45}
+      y={offset + rowHeight * 0.52}
       font-family="var(--font-display)"
       font-weight="800"
       font-style="italic"
-      font-size={Math.min(canvasWidth * 0.23, canvasHeight * 0.45)}
+      font-size={Math.min(canvasWidth * 0.18, rowHeight * 0.65)}
       fill="currentColor"
-      opacity="0.2">{category.toUpperCase()}</text
-    >
+      opacity="0.18"
+    >{category.toUpperCase()}</text>
+
+    <!-- PURE GRAPHICAL CTF ILLUSTRATION IMAGE (NO CODE) -->
     <image
       href={`/club/characters/${portrait}.png`}
       x={imageX}
@@ -133,17 +170,13 @@
     overflow: hidden;
     pointer-events: none;
     user-select: none;
-    opacity: 0.32;
-    filter: saturate(0.45);
+    opacity: 0.42;
+    filter: saturate(0.85);
     mask-image: linear-gradient(90deg, #0004, #000c 65%, #0005);
   }
+
   :global(:root[data-theme='light']) .challenge-backdrop {
-    opacity: 0.4;
-    filter: saturate(0.8);
-  }
-  svg {
-    display: block;
-    inline-size: 100%;
-    block-size: 100%;
+    opacity: 0.28;
+    filter: saturate(0.65) contrast(1.1);
   }
 </style>

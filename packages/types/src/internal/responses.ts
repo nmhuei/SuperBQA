@@ -29,12 +29,12 @@ export function response<
   const schema = dataSchema
     ? z.object({
         kind: z.literal(kind),
-        message: z.literal(options.message),
+        message: z.string(),
         data: dataSchema,
       })
     : z.object({
         kind: z.literal(kind),
-        message: z.literal(options.message),
+        message: z.string(),
       })
 
   return {

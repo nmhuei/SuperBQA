@@ -43,9 +43,15 @@
 
   img {
     display: block;
-    max-inline-size: min(12rem, 48vw);
-    max-block-size: 2.5rem;
+    block-size: 3.25rem;
+    max-inline-size: min(18rem, 55vw);
     object-fit: contain;
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+
+  .club-brand:hover img {
+    filter: drop-shadow(0 0 12px rgba(0, 255, 102, 0.5));
+    transform: scale(1.02);
   }
 
   brand-mark {

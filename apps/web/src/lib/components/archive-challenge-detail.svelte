@@ -254,7 +254,7 @@
     : 'Archived challenge details'}
 >
   {#if authorized}
-    <ClubDetailGeometry />
+    <ClubDetailGeometry seed={challenge.id} category={challenge.category} />
     <header>
       {#if onClose}
         <div class="back-action">

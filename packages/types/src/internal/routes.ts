@@ -167,7 +167,10 @@ export type RouteHandler<
   T extends AnyRouteDefinition = AnyRouteDefinition,
 > = (
   args: RouteHandlerArgs<TContext, TUser, T>
-) => RouteHandlerResult<T> | Promise<RouteHandlerResult<T>>
+) =>
+  | RouteHandlerResult<T>
+  | Response
+  | Promise<RouteHandlerResult<T> | Response>
 
 export type RouteHandlerResult<
   T extends AnyRouteDefinition = AnyRouteDefinition,

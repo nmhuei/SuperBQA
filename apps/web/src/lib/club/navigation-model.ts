@@ -32,7 +32,7 @@ export function getNavigationModel(input: NavigationInput) {
     {
       id: 'home',
       href: '/',
-      label: input.mode === 'club' && privateAccess ? 'Home' : 'Event',
+      label: 'Home',
       icon: 'home',
     },
     { id: 'rules', href: '/rules', label: 'Rules', icon: 'rules' },
@@ -85,6 +85,13 @@ export function getNavigationModel(input: NavigationInput) {
       href: '/admin/teams',
       label: 'Manage teams',
       icon: 'account',
+    })
+  if (members)
+    admin.push({
+      id: 'admin-security',
+      href: '/admin/security',
+      label: 'Security & Anti-Cheat',
+      icon: 'rules',
     })
   if (challenges && members)
     admin.push({

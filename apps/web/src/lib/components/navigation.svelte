@@ -5,7 +5,6 @@
   import NavigationButton from '$lib/components/navigation-button.svelte'
   import NavigationCountdown from '$lib/components/navigation-countdown.svelte'
   import NavigationMobile from '$lib/components/navigation-mobile.svelte'
-  import ThemeToggle from '$lib/components/theme-toggle.svelte'
   import {
     IconCopy,
     IconFlagBannerFold,
@@ -155,14 +154,42 @@
           {/snippet}
         </Tooltip>
       {/if}
-      <ThemeToggle />
     </nav-end>
 
     <NavigationMobile />
   </nav-toolbar>
+
+  {#if user?.banned}
+    <div class="banned-alert-banner">
+      <span class="banned-alert-icon">⛔</span>
+      <span class="banned-alert-text">
+        Your team has been banned. If you have any questions, please open a ticket on our Discord server.
+      </span>
+    </div>
+  {/if}
 </header>
 
 <style>
+  .banned-alert-banner {
+    background: rgba(230, 25, 60, 0.96);
+    color: #ffffff;
+    padding: 0.55rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-bottom: 2px solid #ff4466;
+    box-shadow: 0 4px 16px rgba(255, 0, 50, 0.4);
+    text-align: center;
+    z-index: 1000;
+  }
+
+  .banned-alert-icon {
+    font-size: 1.1rem;
+  }
   header {
     position: fixed;
     inset-block-start: 0;

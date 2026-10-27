@@ -79,9 +79,19 @@
   ><title>{internal ? 'Club events' : 'Archive'} | UCS</title></svelte:head
 >
 <section class="archive-page" aria-labelledby="archive-title">
+  <!-- Command Center Ambient Hacker Backdrop -->
+  <div class="catalog-ambient-bg" aria-hidden="true">
+    <ClubDetailGeometry
+      seed={internal ? 'ucs-club-day-events' : 'ucs-archive-command-center'}
+      theme={internal ? 'radar' : 'network'}
+      opacity={0.2}
+    />
+  </div>
+
   <h1 id="archive-title" data-visually-hidden>
     {internal ? 'Club events' : 'Archive'}
   </h1>
+
   {#if access.isPending || (allowed && archives.isPending)}
     <div class="status" role="status">
       <Spinner />
@@ -165,7 +175,14 @@
           aria-label={`Open challenges: ${event.name}`}
         >
           <div class="event-cover" aria-hidden="true">
-            <ClubDetailGeometry /><span>{month(event.endTime)}</span><strong
+            <ClubDetailGeometry seed={event.id} />
+            <div class="cover-telemetry">
+              <span class="cover-code">EVT://0x{event.id.slice(0, 4).toUpperCase()}</span>
+              {#if internal}
+                <span class="cover-phase" data-live={event.phase === 'live' || undefined}>{event.phase.toUpperCase()}</span>
+              {/if}
+            </div>
+            <span>{month(event.endTime)}</span><strong
               >{year(event.endTime)}</strong
             >
           </div>
@@ -234,6 +251,8 @@
 
 <style>
   .archive-page {
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -241,6 +260,16 @@
     block-size: calc(100dvh - var(--header-height));
     min-block-size: 0;
     padding: 1rem;
+  }
+  .catalog-ambient-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.35;
+    mask-image: radial-gradient(ellipse 90% 75% at 50% 25%, #000c 30%, transparent 85%);
   }
   .archive-toolbar {
     display: flex;
@@ -313,6 +342,36 @@
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     font-weight: 500;
+  }
+  .cover-telemetry {
+    position: absolute;
+    inset-block-start: 0.65rem;
+    inset-inline-start: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .cover-code {
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    background: rgba(8, 12, 10, 0.78);
+    border: 1px solid currentColor;
+    opacity: 0.75;
+  }
+  .cover-phase {
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    background: var(--club-accent-soft);
+    color: var(--club-accent-text);
+  }
+  .cover-phase[data-live] {
+    background: var(--club-lime, #00ff66);
+    color: #080c0a;
+    box-shadow: 0 0 6px rgba(0, 255, 102, 0.4);
   }
   .event-content {
     display: flex;

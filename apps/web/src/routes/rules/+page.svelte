@@ -29,35 +29,68 @@
   .club-rules {
     display: flex;
     flex-direction: column;
+    align-items: center;
     inline-size: 100%;
     block-size: calc(100dvh - var(--header-height));
     min-block-size: 0;
-    padding: 1rem;
+    padding: 2rem 1.5rem;
   }
   .rules-content {
     flex: 1;
+    inline-size: 100%;
+    max-inline-size: 85ch;
+    margin-inline: auto;
     min-block-size: 0;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
     scrollbar-width: thin;
+    padding-inline: 1rem;
+    padding-block-end: 4rem;
   }
   .rules-content:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 3px;
   }
   .rules-content :global(prose-content) {
-    max-inline-size: 80ch;
-    font-size: 0.9375rem;
+    max-inline-size: 100%;
+    margin-inline: auto;
+    font-size: 0.95rem;
     line-height: 1.85;
+  }
+  .rules-content :global(prose-content > h1:first-child) {
+    text-align: center;
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+  }
+  .rules-content :global(prose-content > h1:first-child + p) {
+    text-align: center;
+    max-inline-size: 65ch;
+    margin-inline: auto;
+    color: var(--foreground-l2, #b5bfba);
+    margin-bottom: 1.5rem;
+  }
+  .rules-content :global(prose-content [data-timer]) {
+    display: flex;
+    justify-content: center;
+    margin-block: 1.5rem;
+  }
+  .rules-content :global(prose-content > hr) {
+    border-color: rgba(0, 255, 102, 0.2);
+    margin-block: 2.5rem;
   }
   .rules-content > p {
     color: var(--club-muted);
     font-size: 0.9375rem;
     line-height: 1.7;
+    text-align: center;
   }
   @media (width < 40rem) {
     .club-rules {
-      padding: 0.75rem;
+      padding: 1rem 0.75rem;
     }
   }
 </style>

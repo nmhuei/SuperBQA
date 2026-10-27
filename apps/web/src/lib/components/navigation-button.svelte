@@ -51,8 +51,8 @@
     gap: 0.5rem;
     min-block-size: 2.75rem;
     padding: 0.625rem 0.875rem;
-    font-size: 0.875rem;
-    font-weight: 550;
+    font-size: 0.9375rem;
+    font-weight: 600;
     border: 1px solid transparent;
     color: var(--foreground-l2);
     background: transparent;

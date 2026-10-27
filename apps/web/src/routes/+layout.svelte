@@ -11,8 +11,11 @@
   import '../styles/theme-visibility.css'
   import '../styles/club.css'
   import { QueryClientProvider } from '@tanstack/svelte-query'
+  import { page } from '$app/state'
   import favicon from '$lib/assets/favicon.svg'
   import Brainrot from '$lib/components/brainrot.svelte'
+  import CmatrixRain from '$lib/components/cmatrix-rain.svelte'
+  import RouteTransition from '$lib/components/route-transition.svelte'
   import ClubSolveCelebration from '$lib/components/club-solve-celebration.svelte'
   import {
     createSolveCelebrations,
@@ -29,6 +32,8 @@
 
   const { data, children }: LayoutProps = $props()
   setContext(solveCelebrationContext, createSolveCelebrations())
+
+  const isHome = $derived(page.url.pathname === '/')
 
   onMount(() => {
     initAnalytics(data.clientConfig)
@@ -88,15 +93,21 @@
 </svelte:head>
 
 <QueryClientProvider client={data.queryClient}>
-  <app-shell>
+  <CmatrixRain opacity={0.22} />
+  <RouteTransition />
+  <app-shell class:is-home={isHome}>
     <a class="skip-link" href="#main-content">Skip to main content</a>
-    <Navigation />
+    {#if !isHome}
+      <Navigation />
+    {/if}
 
     <main id="main-content" tabindex="-1">
       {@render children()}
     </main>
 
-    <RootEdgeFades />
+    {#if !isHome}
+      <RootEdgeFades />
+    {/if}
   </app-shell>
   <ClubSolveCelebration />
 </QueryClientProvider>
@@ -111,6 +122,10 @@
     flex-direction: column;
     min-block-size: 100dvh;
     padding-block-start: var(--header-height);
+  }
+
+  app-shell.is-home {
+    padding-block-start: 0;
   }
 
   main {

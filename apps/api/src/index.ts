@@ -13,6 +13,7 @@ import { adminBotProvider } from './providers/instances/admin-bot'
 import { analyticsProvider } from './providers/instances/analytics'
 import { uploadProvider } from './providers/instances/uploads'
 import { routeModules } from './routes'
+import { registerSecurityAdminRoutes } from './routes/v2/admin/security'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
 import { startLeaderboardWorker, stopWorkers } from './workers'
 
@@ -130,6 +131,7 @@ export const setupFullApiApp = async () => {
     adminBot: adminBotProvider?.authMiddleware || badEndpointMiddleware,
     dynamicChallenge: dynamicChallengeAuthMiddleware,
   })
+  registerSecurityAdminRoutes(app)
   await uploadProvider.startupWebPart(app)
   if (adminBotProvider) {
     await adminBotProvider.startupWebPart(app)

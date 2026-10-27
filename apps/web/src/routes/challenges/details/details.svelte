@@ -70,7 +70,7 @@
 
 {#if challenge}
   <challenge-details>
-    <ClubDetailGeometry />
+    <ClubDetailGeometry seed={challenge.id} category={challenge.category} />
     <ChallengeDetailsHeader {challenge} {isSolved} />
 
     <details-tabs>
@@ -109,6 +109,7 @@
   </challenge-details>
 {:else}
   <challenge-details data-empty>
+    <ClubDetailGeometry seed="empty-details" opacity={0.3} />
     <EmptyState
       icon={IconFlagBanner}
       title="Select a challenge"
