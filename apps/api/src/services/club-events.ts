@@ -1048,3 +1048,86 @@ export const getClubTeamProgress = async (
     events,
   }
 }
+
+export const syncClubEventChallenge = async (
+  db: DatabaseClient,
+  challenge: typeof challenges.$inferSelect
+) => {
+  const activeEvents = await db
+    .select({ id: clubEvents.id })
+    .from(clubEvents)
+    .where(isNull(clubEvents.archiveId))
+
+  if (activeEvents.length === 0) return
+
+  const activeEventIds = activeEvents.map(e => e.id)
+
+  const snap = snapshotChallenge({
+    ...challenge,
+    score: challenge.data.points.max,
+    solveCount: 0,
+  })
+
+  await db
+    .update(clubEventChallenges)
+    .set({
+      publicData: snap.publicData,
+      staticFlags: snap.staticFlags,
+    })
+    .where(
+      and(
+        eq(clubEventChallenges.challengeId, challenge.id),
+        inArray(clubEventChallenges.eventId, activeEventIds)
+      )
+    )
+}
+
+export const syncAllActiveClubEventChallenges = async (db: DatabaseClient) => {
+  const activeEvents = await db
+    .select({ id: clubEvents.id })
+    .from(clubEvents)
+    .where(isNull(clubEvents.archiveId))
+
+  if (activeEvents.length === 0) return
+
+  const activeEventIds = activeEvents.map(e => e.id)
+
+  const activeEventChalls = await db
+    .select({
+      challengeId: clubEventChallenges.challengeId,
+    })
+    .from(clubEventChallenges)
+    .where(inArray(clubEventChallenges.eventId, activeEventIds))
+
+  const uniqueChallengeIds = [
+    ...new Set(activeEventChalls.map(c => c.challengeId)),
+  ]
+  if (uniqueChallengeIds.length === 0) return
+
+  const challRows = await db
+    .select()
+    .from(challenges)
+    .where(inArray(challenges.id, uniqueChallengeIds))
+
+  for (const row of challRows) {
+    const snap = snapshotChallenge({
+      ...row,
+      score: row.data.points.max,
+      solveCount: 0,
+    })
+
+    await db
+      .update(clubEventChallenges)
+      .set({
+        publicData: snap.publicData,
+        staticFlags: snap.staticFlags,
+      })
+      .where(
+        and(
+          eq(clubEventChallenges.challengeId, row.id),
+          inArray(clubEventChallenges.eventId, activeEventIds)
+        )
+      )
+  }
+}
+

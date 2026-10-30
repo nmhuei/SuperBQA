@@ -8,6 +8,7 @@ import {
   getPrivateChallenge,
   upsertChallenge,
 } from '../../../../services/challenges'
+import { syncClubEventChallenge } from '../../../../services/club-events'
 import {
   getInstancerProvider,
   resolveInstancerName,
@@ -147,6 +148,8 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
       params.id
     )
   }
+
+  await syncClubEventChallenge(ctx.var.db, updated)
 
   forceLeaderboardUpdate(ctx.var.redis)
   return res.goodChallengeUpdateV2({

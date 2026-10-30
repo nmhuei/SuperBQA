@@ -7,7 +7,8 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { runMigrationsOnStartup } from './lib/migrations'
-import { appEnvMiddleware } from './middlewares/app-env'
+import { appEnvMiddleware, db } from './middlewares/app-env'
+import { syncAllActiveClubEventChallenges } from './services/club-events'
 import { dynamicChallengeAuthMiddleware } from './middlewares/dynamic-challenge-auth'
 import { adminBotProvider } from './providers/instances/admin-bot'
 import { analyticsProvider } from './providers/instances/analytics'
@@ -156,6 +157,12 @@ const main = async () => {
     config.instanceType === 'leaderboard'
       ? createApp()
       : await setupFullApiApp()
+
+  if (config.instanceType !== 'leaderboard') {
+    await syncAllActiveClubEventChallenges(db).catch(err => {
+      logger.error({ err }, 'failed to sync active club event challenges on startup')
+    })
+  }
 
   const port = Number(process.env.PORT ?? 3000)
   logger.info(`Listening on :${port}`)

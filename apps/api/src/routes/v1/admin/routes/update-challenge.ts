@@ -7,6 +7,7 @@ import {
   getPrivateChallenge,
   upsertChallenge,
 } from '../../../../services/challenges'
+import { syncClubEventChallenge } from '../../../../services/club-events'
 import {
   applyChallengeConfigChange,
   scoringConfigChanged,
@@ -39,6 +40,7 @@ adminGroup.route(UpdateChallengeRoute, async ({ res, ctx, params, body }) => {
       params.id
     )
   }
+  await syncClubEventChallenge(ctx.var.db, updated)
   forceLeaderboardUpdate(ctx.var.redis)
   return res.goodChallengeUpdate({
     id: updated.id,

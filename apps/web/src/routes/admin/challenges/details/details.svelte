@@ -147,6 +147,7 @@
             queryKey: queryKeys.adminChallenge(id),
           })
         }
+        queryClient.invalidateQueries({ queryKey: ['club', 'events'] })
         onEditorChange(saveSuccess(save(current), response.data))
       } else if (response.kind === BadAdminBotConfig.kind) {
         toast.error(`Admin bot config error: ${response.data.error}`)
