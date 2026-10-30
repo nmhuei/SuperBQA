@@ -256,7 +256,10 @@
 
   async function retryEvent() {
     const refreshed = await access.refetch()
-    if (!refreshed.isError && refreshed.data?.canAccessArchives) {
+    if (
+      !refreshed.isError &&
+      (mode === 'event' || refreshed.data?.canAccessArchives)
+    ) {
       await Promise.all([detailQuery.refetch(), catalogQuery.refetch()])
     }
   }
@@ -448,6 +451,7 @@
     <ArchiveChallengeDetail
       {archiveId}
       {mode}
+      clubOnly={mode === 'event' ? (privateEvent.data?.clubOnly ?? false) : true}
       {submissionOpen}
       {closedMessage}
       challenge={selectedChallenge}

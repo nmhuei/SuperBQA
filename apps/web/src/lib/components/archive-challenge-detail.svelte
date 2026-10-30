@@ -31,6 +31,7 @@
   interface Props {
     mode?: 'practice' | 'event'
     archiveId: string
+    clubOnly?: boolean
     challenge: ArchivedChallenge
     solved: boolean
     allowed: boolean
@@ -42,6 +43,7 @@
   let {
     mode = 'practice',
     archiveId,
+    clubOnly = mode === 'practice',
     challenge,
     solved,
     allowed,
@@ -55,10 +57,13 @@
   const access = useClubAccess()
   const celebrations = getContext<SolveCelebrations>(solveCelebrationContext)
   const category = $derived(getCategoryConfig(challenge.category))
+  const requiresMemberAccess = $derived(
+    mode === 'practice' || clubOnly
+  )
   const authorized = $derived(
     allowed &&
-      access.data?.canAccessArchives === true &&
-      !access.isError &&
+      (!requiresMemberAccess ||
+        (access.data?.canAccessArchives === true && !access.isError)) &&
       !!user.data &&
       !user.isError
   )
@@ -119,8 +124,9 @@
       allowed:
         allowed &&
         isAuthenticated() &&
-        currentAccess?.status === 'success' &&
-        currentAccess.data?.canAccessArchives === true,
+        (!requiresMemberAccess ||
+          (currentAccess?.status === 'success' &&
+            currentAccess.data?.canAccessArchives === true)),
     }
   })
 
@@ -404,7 +410,13 @@
     </footer>
   {:else}
     <p class="access-notice" role="status">
-      Member access is required to view this challenge.
+      {#if !user.data}
+        Please log in to view this challenge.
+      {:else if requiresMemberAccess}
+        Member access is required to view this challenge.
+      {:else}
+        You do not have access to view this challenge.
+      {/if}
     </p>
   {/if}
 </section>
