@@ -299,6 +299,9 @@ export const declareRouter = <
       }
     } else if (wantsOptionalAuth) {
       user = await getAuthenticatedUser(context)
+      if (user && definition.rejectBanned && user.banned) {
+        return context.json(...respond.accessDenied(true))
+      }
     }
 
     if (

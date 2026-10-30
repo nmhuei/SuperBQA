@@ -103,7 +103,6 @@
             data-active={isActive(item.activePath) ? '' : undefined}
             aria-current={isActive(item.activePath) ? 'page' : undefined}
           >
-            <Icon />
             {item.label}
           </a>
         {/each}

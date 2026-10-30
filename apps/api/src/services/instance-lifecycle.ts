@@ -139,6 +139,21 @@ export const extendInstance = (
       return instancerError('Extending is disabled for this challenge')
     }
 
+    // Rate-limit extensions: prevent keeping instance alive indefinitely by only allowing extension near expiry
+    const current = await provider.getInstance(
+      instanceQueryOptions(request.user, challenge)
+    )
+    if (
+      current &&
+      'timeLeftMilliseconds' in current &&
+      typeof current.timeLeftMilliseconds === 'number' &&
+      current.timeLeftMilliseconds > instancerConfig.timeoutMilliseconds / 2
+    ) {
+      return instancerError(
+        'Instance cannot be extended while more than half of its lifetime remains'
+      )
+    }
+
     return await provider.extendInstance({
       ...instanceQueryOptions(request.user, challenge),
       timeoutMilliseconds: instancerConfig.timeoutMilliseconds,

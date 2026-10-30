@@ -51,7 +51,8 @@ const cheatedFromIdExpr = sql<
   string | null
 >`${submissions.details} ->> 'cheatedFrom'`
 
-const likePattern = (value: string) => `%${value.trim().toLowerCase()}%`
+const escapeLike = (str: string) => str.replace(/[%_\\]/g, '\\$&')
+const likePattern = (value: string) => `%${escapeLike(value.trim().toLowerCase())}%`
 
 const buildSubmissionsFilters = (
   params: AdminSubmissionsQuery

@@ -1,21 +1,38 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import ArchiveWorkspace from '$lib/components/archive-workspace.svelte'
-  import { parseArchiveLocation } from '$lib/club/archive-model'
   import { parseClubEventLocation } from '$lib/club/club-event-model'
   import LivePage from './live-page.svelte'
 
-  const archiveRoute = $derived(page.url.searchParams.has('archive'))
-  const archiveId = $derived(parseArchiveLocation(page.url).archiveId ?? '')
-  const eventRoute = $derived(
-    !archiveRoute && page.url.searchParams.has('event')
+  const eventId = $derived(
+    parseClubEventLocation(page.url).eventId ??
+      page.url.searchParams.get('archive')?.trim() ??
+      ''
   )
-  const eventId = $derived(parseClubEventLocation(page.url).eventId ?? '')
+  const eventRoute = $derived(
+    page.url.searchParams.has('event') || page.url.searchParams.has('archive')
+  )
+
+  $effect(() => {
+    if (page.url.searchParams.has('archive')) {
+      const archiveParam = page.url.searchParams.get('archive')?.trim()
+      if (archiveParam) {
+        const nextUrl = new URL(page.url)
+        nextUrl.searchParams.delete('archive')
+        nextUrl.searchParams.set('event', archiveParam)
+        void goto(
+          `${nextUrl.pathname}?${nextUrl.searchParams.toString()}${nextUrl.hash}`,
+          { replaceState: true }
+        )
+      } else {
+        void goto('/club/events', { replaceState: true })
+      }
+    }
+  })
 </script>
 
-{#if archiveRoute}
-  {#key archiveId}<ArchiveWorkspace {archiveId} />{/key}
-{:else if eventRoute}
+{#if eventRoute}
   {#key eventId}<ArchiveWorkspace archiveId={eventId} mode="event" />{/key}
 {:else}
   <LivePage />

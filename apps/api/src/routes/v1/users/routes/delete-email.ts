@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { DeleteEmailRoute } from '@rctf/types'
 import { deleteEmail } from '../../../../services/users'
+import { divisionAllowed } from '../../../../util/acl'
 import usersGroup from '../group'
 
 usersGroup.route(DeleteEmailRoute, async ({ ctx, res, user }) => {
@@ -12,6 +13,9 @@ usersGroup.route(DeleteEmailRoute, async ({ ctx, res, user }) => {
   }
   if (!user.email) {
     return res.badEmailNoExists()
+  }
+  if (!divisionAllowed(null, user.division)) {
+    return res.badEndpoint()
   }
   return await deleteEmail(res, ctx.var.db, ctx.var.redis, user.id)
 })

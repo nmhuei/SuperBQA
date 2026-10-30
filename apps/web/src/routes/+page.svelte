@@ -16,7 +16,7 @@
   }
 
   const menuItems = $derived<MenuItem[]>([
-    { label: 'Challenges', index: '01', href: '/challenges' },
+    { label: 'Club Events', index: '01', href: '/club/events' },
     { label: 'Scoreboard', index: '02', href: '/scores' },
     { label: 'Info & Rules', index: '03', href: '/rules' },
     ...(user

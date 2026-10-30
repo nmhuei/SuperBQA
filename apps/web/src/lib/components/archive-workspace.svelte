@@ -1,11 +1,10 @@
 <script lang="ts">
   import { BadClubArchive, BadClubEvent, BadPerms, BadToken } from '@rctf/types'
-  import { goto } from '$app/navigation'
+  import { goto, replaceState } from '$app/navigation'
   import { page } from '$app/state'
   import {
     archiveCatalogHref,
     archiveChallengeHref,
-    archiveScoreboardHref,
     parseArchiveLocation,
     practiceProgress,
   } from '$lib/club/archive-model'
@@ -13,10 +12,8 @@
     clubEventCatalogHref,
     clubEventChallengeHref,
     clubEventPhase,
-    clubEventScoreboardHref,
     parseClubEventLocation,
   } from '$lib/club/club-event-model'
-  import { getEventCountdown } from '$lib/club/dashboard'
   import {
     filterArchiveChallenges,
     groupArchiveChallenges,
@@ -31,7 +28,6 @@
     IconEyeClosed,
     IconFlagBanner,
     IconQuestion,
-    IconTrophy,
   } from '$lib/icons'
   import {
     useClubAccess,
@@ -62,10 +58,13 @@
 
   const access = useClubAccess()
   const user = useCurrentUser()
+  const isAuthenticated = $derived(!!user.data && !user.isError)
   const allowed = $derived(
-    access.data?.canAccessArchives === true &&
-      !access.isError &&
-      !access.isPending
+    mode === 'event'
+      ? isAuthenticated
+      : access.data?.canAccessArchives === true &&
+        !access.isError &&
+        !access.isPending
   )
   const archive = useClubArchive(
     () => archiveId,
@@ -86,9 +85,6 @@
   )
   const workspaceHref = $derived(
     mode === 'event' ? clubEventChallengeHref : archiveChallengeHref
-  )
-  const scoreboardHref = $derived(
-    mode === 'event' ? clubEventScoreboardHref : archiveScoreboardHref
   )
   const permissionError = $derived(
     [detailQuery.error, catalogQuery.error].some(
@@ -126,20 +122,17 @@
         ? `Submissions open ${formatDateTime(scheduledEvent.startTime)}.`
         : 'This event has ended. Submissions are closed.'
   )
-  const eventClock = $derived(
-    !scheduledEvent
-      ? ''
-      : phase === 'draft'
-        ? 'Draft preview'
-        : phase === 'ended'
-          ? 'Event ended'
-          : `${phase === 'upcoming' ? 'Starts' : 'Ends'} in ${getEventCountdown({ ...scheduledEvent, isArchived: false }, now)}`
-  )
   const solvedIds = $derived(new Set(event?.solvedIds ?? []))
   const progress = $derived(practiceProgress(challenges, solvedIds))
+  let localChallengeId = $state<string | null>(null)
+  const selectedId = $derived(localChallengeId ?? location.challengeId)
   const selected = $derived(
-    challenges.find(challenge => challenge.id === location.challengeId) ?? null
+    challenges.find(challenge => challenge.id === selectedId) ?? null
   )
+
+  $effect(() => {
+    localChallengeId = location.challengeId
+  })
   const filtered = $derived(
     filterArchiveChallenges(challenges, {
       query: location.query,
@@ -211,6 +204,14 @@
     if (permissionError) void access.refetch()
   })
 
+  function selectChallenge(challengeId: string, event: MouseEvent) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0)
+      return
+    event.preventDefault()
+    localChallengeId = challengeId
+    void replaceState(challengeHref(challengeId), { ...page.state })
+  }
+
   function challengeHref(challengeId: string) {
     return workspaceHref(archiveId, {
       challengeId,
@@ -223,7 +224,7 @@
   function updateFilters(query: string, hideSolved: boolean) {
     void goto(
       workspaceHref(archiveId, {
-        challengeId: location.challengeId,
+        challengeId: selectedId,
         query,
         hideSolved,
         catalogQuery: location.catalogQuery,
@@ -249,7 +250,8 @@
   }
 
   function closeDetail() {
-    void goto(listHref, { noScroll: true, keepFocus: false })
+    localChallengeId = null
+    void replaceState(listHref, { ...page.state })
   }
 
   async function retryEvent() {
@@ -369,7 +371,6 @@
                   index={categories.indexOf(value)}
                   count={categories.length}
                 />
-                <config.icon data-slot="category-icon" />
                 <span class="category-name">{config.name}</span>
                 <span class="category-count">{entries.length}</span>
                 <IconCaretDown data-slot="chevron" />
@@ -392,13 +393,14 @@
                       class="challenge-row"
                       href={challengeHref(challenge.id)}
                       data-sveltekit-noscroll
-                      aria-current={location.challengeId === challenge.id
+                      aria-current={selectedId === challenge.id
                         ? 'true'
                         : undefined}
-                      data-selected={location.challengeId === challenge.id
+                      data-selected={selectedId === challenge.id
                         ? ''
                         : undefined}
                       data-solved={solved ? '' : undefined}
+                      onclick={event => selectChallenge(challenge.id, event)}
                     >
                       <ChallengeBackdrop
                         id={challenge.id}
@@ -422,11 +424,9 @@
                             ><strong>{challenge.points.toLocaleString()}</strong
                             > pts</span
                           >
-                          <span class="challenge-status"
-                            >{solved
-                              ? 'Solved'
-                              : `${challenge.solves.toLocaleString()} event solves`}</span
-                          >
+                          {#if solved}
+                            <span class="challenge-status">Solved</span>
+                          {/if}
                         {:else}
                           <span class="reference-label">Reference only</span>
                         {/if}
@@ -459,13 +459,13 @@
     <div class="detail-placeholder">
       <ClubDetailGeometry seed={archiveId} />
       <EmptyState
-        icon={location.challengeId ? IconQuestion : IconFlagBanner}
-        title={location.challengeId
+        icon={selectedId ? IconQuestion : IconFlagBanner}
+        title={selectedId
           ? 'Challenge not found'
           : challenges.length
             ? 'Choose a challenge'
             : 'No challenges in this event'}
-        subtitle={location.challengeId
+        subtitle={selectedId
           ? 'This challenge is not part of the selected event.'
           : challenges.length
             ? mode === 'event'
@@ -475,8 +475,15 @@
               ? 'Browse club events to find another event.'
               : 'Browse the archive to find another event.'}
       />
-      {#if location.challengeId}
-        <Button href={listHref} variant="outline">Back to challenges</Button>
+      {#if selectedId}
+        <Button
+          href={listHref}
+          onclick={event => {
+            event.preventDefault()
+            closeDetail()
+          }}
+          variant="outline">Back to challenges</Button
+        >
       {:else if challenges.length === 0}
         <Button href={catalogHref} variant="outline">Browse events</Button>
       {/if}
@@ -583,32 +590,34 @@
         {mode === 'event' ? 'Events' : 'Archive'}</Button
       >
       <div class="event-heading">
-        <span class="practice-label"
-          >{mode === 'event' ? 'Club event' : 'Practice'}</span
-        >
-        {#if eventOptions.length > 1}
-          <label class="sr-only" for={`${componentId}-event`}
-            >{mode === 'event' ? 'Club event' : 'Archived event'}</label
-          >
-          <select
-            id={`${componentId}-event`}
-            value={archiveId}
-            onchange={input =>
-              void goto(
-                workspaceHref(input.currentTarget.value, {
-                  catalogQuery: location.catalogQuery,
-                }),
-                { noScroll: true }
-              )}
-          >
-            {#if !eventOptions.some(option => option.id === archiveId)}<option
-                value={archiveId}>{event.name}</option
-              >{/if}
-            {#each eventOptions as option (option.id)}<option value={option.id}
-                >{option.name}</option
-              >{/each}
-          </select>
-        {:else}<h1>{event.name}</h1>{/if}
+        {#if mode !== 'event'}
+          <span class="practice-label">Practice</span>
+          {#if eventOptions.length > 1}
+            <label class="sr-only" for={`${componentId}-event`}>Archived event</label>
+            <select
+              id={`${componentId}-event`}
+              value={archiveId}
+              onchange={input =>
+                void goto(
+                  workspaceHref(input.currentTarget.value, {
+                    catalogQuery: location.catalogQuery,
+                  }),
+                  { noScroll: true }
+                )}
+            >
+              {#if !eventOptions.some(option => option.id === archiveId)}<option
+                  value={archiveId}>{event.name}</option
+                >{/if}
+              {#each eventOptions as option (option.id)}<option value={option.id}
+                  >{option.name}</option
+                >{/each}
+            </select>
+          {:else}
+            <h1 class="event-title-static">{event.name}</h1>
+          {/if}
+        {:else}
+          <h1 class="event-title-static">{event.name}</h1>
+        {/if}
       </div>
       <div class="toolbar-actions">
         {#if scheduledEvent?.archiveId}
@@ -617,16 +626,6 @@
             variant="outline"
             size="sm">Practice</Button
           >
-        {:else if scheduledEvent}
-          <span
-            class="event-clock"
-            data-phase={phase}
-            title={phase === 'live' || phase === 'ended'
-              ? `Ends ${formatDateTime(scheduledEvent.endTime)}`
-              : `Starts ${formatDateTime(scheduledEvent.startTime)}`}
-          >
-            {eventClock}
-          </span>
         {/if}
         {#if !hideBeforeStart}
           <span
@@ -642,13 +641,6 @@
             >
           </span>
         {/if}
-        <Button
-          href={scoreboardHref(archiveId, location)}
-          variant="ghost"
-          size="sm"
-          ><IconTrophy /><span class="scoreboard-label">Scoreboard</span
-          ></Button
-        >
       </div>
     </header>
     {#if hideBeforeStart && scheduledEvent}
@@ -665,7 +657,7 @@
       </div>
     {:else if isMobile}
       <div class="workspace-panes" data-form="mobile">
-        {#if location.challengeId}
+        {#if selectedId}
           <pane-surface data-side="detail">{@render detailPane()}</pane-surface>
         {:else}<pane-surface data-side="list">{@render listPane()}</pane-surface
           >{/if}
@@ -752,6 +744,12 @@
     font-size: var(--step-0);
     color: var(--foreground-l1);
   }
+  .event-title-static {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--foreground-l0);
+    letter-spacing: -0.01em;
+  }
   select {
     cursor: pointer;
     background: var(--background-l1);
@@ -766,15 +764,6 @@
     display: flex;
     align-items: center;
     gap: var(--space-s);
-  }
-  .event-clock {
-    white-space: nowrap;
-    font-size: var(--step--1);
-    font-variant-numeric: tabular-nums;
-    color: var(--foreground-l3);
-  }
-  .event-clock[data-phase='live'] {
-    color: var(--foreground-success);
   }
   .practice-progress {
     white-space: nowrap;
@@ -1039,10 +1028,6 @@
       justify-content: space-between;
       inline-size: 100%;
       padding-inline-start: 0.6rem;
-    }
-    .event-clock {
-      flex: 1 1 100%;
-      padding-block: 0.2rem;
     }
     pane-surface[data-side] {
       border-radius: 0;

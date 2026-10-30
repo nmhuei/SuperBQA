@@ -192,7 +192,7 @@
   <!-- Section 1: Provision New Team (Admin Only) -->
   <section class="cyber-card">
     <div class="card-head">
-      <h2 class="card-title">🛡️ Provision New Team (Admin Only)</h2>
+      <h2 class="card-title">Provision New Team (Admin Only)</h2>
       <span class="card-badge">Public Registration: DISABLED</span>
     </div>
 
@@ -291,7 +291,7 @@
   <section class="cyber-card">
     <div class="card-head">
       <div class="card-head-left">
-        <h2 class="card-title">🚨 Security Violation Alerts (5th Device Blocked)</h2>
+        <h2 class="card-title">Security Violation Alerts (5th Device Blocked)</h2>
         <span class="auto-refresh-tag">Auto-refreshes every 10s</span>
       </div>
 
@@ -352,7 +352,7 @@
                   <span class="div-tag">{alert.division}</span>
                 </td>
                 <td class="col-blocked">
-                  <span class="blocked-badge">⛔ {alert.blockedIp}</span>
+                  <span class="blocked-badge">{alert.blockedIp}</span>
                   <small class="blocked-sub">BLOCKED IMMEDIATELY</small>
                 </td>
                 <td class="col-ips">

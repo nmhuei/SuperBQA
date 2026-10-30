@@ -1,12 +1,10 @@
-// not using crypto.timingSafeEqual because it doesn't support comparing
-// strings of different sizes
-export const timingSafeEqual = (a: string, b: string): boolean => {
-  const aBuf = new TextEncoder().encode(a)
-  const bBuf = new TextEncoder().encode(b)
+import crypto from 'node:crypto'
 
-  let out = aBuf.length ^ bBuf.length
-  for (let i = 0; i < Math.max(aBuf.length, bBuf.length); i++) {
-    out |= (aBuf[i] ?? 0) ^ (bBuf[i] ?? 0)
-  }
-  return out === 0
+// Use SHA-256 fixed-length digest before timingSafeEqual to prevent side-channel timing attacks
+// and length leakage when comparing strings of different lengths.
+export const timingSafeEqual = (a: string, b: string): boolean => {
+  const hashA = crypto.createHash('sha256').update(a).digest()
+  const hashB = crypto.createHash('sha256').update(b).digest()
+  return crypto.timingSafeEqual(hashA, hashB) && a.length === b.length
 }
+

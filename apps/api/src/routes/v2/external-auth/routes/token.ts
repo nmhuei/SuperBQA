@@ -4,11 +4,17 @@ import {
   consumeExternalAuthCode,
   verifyExternalAuthClientSecret,
 } from '../../../../services/external-auth'
+import { rateLimitExternalAuthToken } from '../../../../services/rate-limit'
 import externalAuthGroup from '../group'
 
 externalAuthGroup.route(
   ExternalAuthTokenRouteV2,
   async ({ ctx, res, body }) => {
+    const timeLeft = await rateLimitExternalAuthToken(ctx.var.redis, ctx.var.ip)
+    if (timeLeft) {
+      return res.badRateLimit({ timeLeft })
+    }
+
     const ok = await verifyExternalAuthClientSecret(
       ctx.var.db,
       body.clientId,

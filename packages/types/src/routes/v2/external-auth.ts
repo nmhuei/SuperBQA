@@ -53,7 +53,7 @@ export const ExternalAuthTokenRouteV2 = defineRoute({
   path: '/v2/external-auth/token',
   method: 'POST',
   goodResponses: [GoodExternalAuthToken],
-  badResponses: [BadExternalAuthRequest],
+  badResponses: [BadExternalAuthRequest, BadRateLimit],
   authRequired: false,
   body: z.object({
     clientId: z.string().check(z.describe('Public client ID.')),

@@ -1,17 +1,19 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import {
-    archiveChallengeHref,
-    parseArchiveLocation,
-  } from '$lib/club/archive-model'
+  import { clubEventChallengeHref } from '$lib/club/club-event-model'
+  import { parseArchiveLocation } from '$lib/club/archive-model'
   import Button from '$lib/ui/button.svelte'
+
   const target = $derived(
-    archiveChallengeHref(page.params.id ?? '', parseArchiveLocation(page.url))
+    page.params.id
+      ? clubEventChallengeHref(page.params.id, parseArchiveLocation(page.url))
+      : '/club/events'
   )
+
   $effect(() => {
     void goto(target, { replaceState: true })
   })
 </script>
 
-<div role="status"><Button href={target}>Open archived challenges</Button></div>
+<div role="status"><Button href={target}>Open challenges</Button></div>

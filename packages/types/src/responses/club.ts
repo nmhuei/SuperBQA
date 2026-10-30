@@ -32,6 +32,8 @@ export const ClubArchiveChallengeSchema = z.object({
   tags: z.array(z.string()),
   practiceAvailable: z.boolean(),
   practiceUnavailableReason: z.nullable(z.string()),
+  firstSolvers: z.optional(z.array(z.object({ id: z.string() }))),
+  flags: z.optional(z.array(z.string())),
 })
 export const ClubArchiveLeaderboardSchema = z.array(
   z.object({
@@ -40,6 +42,22 @@ export const ClubArchiveLeaderboardSchema = z.array(
     division: z.string(),
     score: z.number(),
     rank: z.int(),
+    solves: z.optional(
+      z.array(
+        z.object({
+          id: z.string(),
+          solveTime: z.number(),
+        })
+      )
+    ),
+    graph: z.optional(
+      z.array(
+        z.object({
+          score: z.number(),
+          time: z.number(),
+        })
+      )
+    ),
   })
 )
 export const GoodClubAccess = response('goodClubAccess', {

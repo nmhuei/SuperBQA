@@ -81,9 +81,9 @@ export function isNavigationPathActive(activePath: string, url: URL) {
     return activePath === '/club/events'
   if (
     isArchiveContext(url) &&
-    ['/archive', '/challenges', '/scores'].includes(activePath)
+    ['/club/events', '/archive', '/challenges', '/scores'].includes(activePath)
   )
-    return activePath === '/archive'
+    return activePath === '/club/events' || activePath === '/archive'
   return activePath === '/'
     ? url.pathname === '/'
     : url.pathname === activePath || url.pathname.startsWith(`${activePath}/`)

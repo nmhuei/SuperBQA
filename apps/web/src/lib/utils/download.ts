@@ -1,5 +1,16 @@
 export type DownloadFile = { name: string; url: string }
 
+const SAFE_URL_PATTERN = /^(https?:\/\/|\/)/i
+
+export function sanitizeFileUrl(url: string | null | undefined): string {
+  if (!url) return '#'
+  const trimmed = url.trim()
+  if (SAFE_URL_PATTERN.test(trimmed)) {
+    return trimmed
+  }
+  return '#'
+}
+
 export type DownloadRunCallbacks = {
   onDone?: () => void
   onError?: (fileName: string) => void

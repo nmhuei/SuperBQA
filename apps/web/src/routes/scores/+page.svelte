@@ -1,23 +1,80 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
+  import { goto } from '$app/navigation'
+  import { page } from '$app/state'
+  import { clubEventPhase, prioritizeClubEvents } from '$lib/club/club-event-model'
   import CtfNotStarted from '$lib/components/ctf-not-started.svelte'
   import { IconFlagBanner, IconSearch, IconTrophy } from '$lib/icons'
+  import { useClubEvents, useClubEvent } from '$lib/query/club-events'
   import { useClientConfig } from '$lib/query/config'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import ScoresLeaderboard from './leaderboard/leaderboard.svelte'
-  import { createScoresData } from './model/data.svelte'
+  import { createEventScoresData, createScoresData } from './model/data.svelte'
   import { createScoresRouteState } from './model/url-state.svelte'
   import ScoresScreenshotContainer from './screenshot/screenshot-container.svelte'
   import ScoresToolbar from './toolbar/toolbar.svelte'
+  import ScoresEventSelect from './scores-event-select.svelte'
 
   const configQuery = useClientConfig()
-  const ctfName = $derived(configQuery.data?.ctfName)
+  const ctfName = $derived(configQuery.data?.ctfName ?? 'UCS CTF')
   const divisions = $derived(configQuery.data?.divisions ?? {})
-  const startTime = $derived(configQuery.data?.startTime ?? 0)
+
+  let now = $state(Date.now())
+  onMount(() => {
+    const timer = setInterval(() => (now = Date.now()), 1000)
+    return () => clearInterval(timer)
+  })
+
+  const eventsQuery = useClubEvents(() => true)
+  const events = $derived(eventsQuery.data ?? [])
+
+  const prioritizedEvents = $derived(prioritizeClubEvents(events, now))
+
+  const urlEventId = $derived(page.url.searchParams.get('event'))
+  const selectedEventId = $derived.by(() => {
+    if (!events.length) return null
+    if (urlEventId && events.some(e => e.id === urlEventId)) {
+      return urlEventId
+    }
+    return prioritizedEvents[0]?.id ?? null
+  })
+
+  function handleSelectEvent(id: string) {
+    const targetUrl = new URL(page.url)
+    targetUrl.searchParams.set('event', id)
+    void goto(targetUrl.pathname + targetUrl.search, {
+      replaceState: true,
+      noScroll: true,
+      keepFocus: true,
+    })
+  }
+
+  const selectedEvent = $derived(
+    events.find(e => e.id === selectedEventId) ?? null
+  )
+
+  const eventDetailQuery = useClubEvent(
+    () => selectedEventId ?? '',
+    () => !!selectedEventId
+  )
 
   const urlState = createScoresRouteState()
 
-  const data = createScoresData({
+  const eventScoresData = createEventScoresData(
+    eventDetailQuery,
+    {
+      division: () => urlState.division,
+      search: () => urlState.search,
+      sortMode: () => urlState.sortMode,
+      focusedChallengeId: () => urlState.focusedChallengeId,
+      showTop3Context: () => urlState.showTop3Context,
+      showSelfContext: () => urlState.showSelfContext,
+    },
+    () => selectedEvent?.startTime ?? 0
+  )
+
+  const globalScoresData = createScoresData({
     division: () => urlState.division,
     search: () => urlState.search,
     sortMode: () => urlState.sortMode,
@@ -26,10 +83,16 @@
     showSelfContext: () => urlState.showSelfContext,
   })
 
-  const revealAfterLoading = data.isLoading
+  const data = $derived(selectedEventId ? eventScoresData : globalScoresData)
 
-  const endTime = $derived(configQuery.data?.endTime ?? null)
+  const startTime = $derived(
+    selectedEvent?.startTime ?? configQuery.data?.startTime ?? 0
+  )
+  const endTime = $derived(
+    selectedEvent?.endTime ?? configQuery.data?.endTime ?? null
+  )
 
+  const revealAfterLoading = $derived(data.isLoading)
   let screenshotOpen = $state(false)
 
   const focusFetching = $derived(
@@ -40,15 +103,27 @@
 </script>
 
 <svelte:head>
-  {#if ctfName}
-    <title>Scores | {ctfName}</title>
-  {/if}
+  <title>Scores {selectedEvent ? `| ${selectedEvent.name}` : ''} | {ctfName}</title>
 </svelte:head>
 
-{#if data.isNotStarted}
-  <CtfNotStarted />
-{:else}
-  <scores-page>
+<scores-page>
+  {#if events.length > 0}
+    <div class="scores-events-bar">
+      <span class="events-bar-label">Club events:</span>
+      <ScoresEventSelect
+        {events}
+        {selectedEventId}
+        {now}
+        onselect={handleSelectEvent}
+      />
+    </div>
+  {/if}
+
+  {#if data.isNotStarted}
+    <scores-leaderboard-slot>
+      <CtfNotStarted />
+    </scores-leaderboard-slot>
+  {:else}
     <ScoresToolbar
       {data}
       {urlState}
@@ -101,13 +176,13 @@
         open={screenshotOpen}
         onOpenChange={open => (screenshotOpen = open)}
         {urlState}
-        ctfName={ctfName ?? ''}
+        ctfName={selectedEvent?.name ?? ctfName ?? ''}
         {startTime}
         {endTime}
       />
     {/if}
-  </scores-page>
-{/if}
+  {/if}
+</scores-page>
 
 <style>
   scores-page {
@@ -119,6 +194,28 @@
     max-block-size: calc(100dvh - var(--header-height));
     overflow: hidden;
     padding-block-end: 1rem;
+  }
+
+  .scores-events-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-inline: 1rem;
+    padding-block: 0.625rem;
+    background: var(--background-l1);
+    border-block-end: 1px solid var(--club-border);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    flex-shrink: 0;
+  }
+
+  .events-bar-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--club-muted);
+    white-space: nowrap;
   }
 
   scores-frame {

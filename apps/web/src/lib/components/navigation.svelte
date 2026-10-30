@@ -119,6 +119,7 @@
                     activePath="/admin"
                     label="Admin menu"
                     icon={IconGavel}
+                    hasDropdown
                   />
                 {/snippet}
               </Menu>
@@ -161,7 +162,6 @@
 
   {#if user?.banned}
     <div class="banned-alert-banner">
-      <span class="banned-alert-icon">⛔</span>
       <span class="banned-alert-text">
         Your team has been banned. If you have any questions, please open a ticket on our Discord server.
       </span>
@@ -208,6 +208,7 @@
     justify-content: space-between;
     gap: 1rem;
     min-block-size: 0;
+    flex-wrap: nowrap;
     padding-inline: clamp(1rem, 3.2vw, 3.5rem);
   }
 
@@ -216,13 +217,17 @@
     align-items: center;
     gap: clamp(1rem, 2.5vw, 2.5rem);
     min-inline-size: 0;
+    flex-wrap: nowrap;
+    flex: 1;
   }
 
-  nav,
-  nav-end {
+  nav {
     display: none;
     align-items: center;
     gap: 0.375rem;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    min-inline-size: 0;
 
     @media (width >= 56rem) {
       display: flex;
@@ -230,7 +235,15 @@
   }
 
   nav-end {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
     flex-shrink: 0;
+    margin-inline-start: auto;
+
+    @media (width >= 56rem) {
+      display: flex;
+    }
   }
 
   [data-scope='menu'][data-part='trigger'] {

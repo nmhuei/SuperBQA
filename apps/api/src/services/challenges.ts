@@ -19,6 +19,7 @@ import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadAlreadySolvedChallenge,
   BadChallenge,
+  BadEnded,
   BadFlag,
   BadRateLimit,
   BadUnknownUser,
@@ -62,6 +63,7 @@ type SubmitResponseHelpers = ResponseHelpers<
     typeof GoodFlag,
     typeof BadAlreadySolvedChallenge,
     typeof BadUnknownUser,
+    typeof BadEnded,
   ]
 >
 
@@ -1238,6 +1240,11 @@ export const submitFlag = async (
     },
     'successfull flag submission'
   )
+
+  const timing = await getCompetitionTiming(db, redis)
+  if (Date.now() >= timing.endTime) {
+    return res.badEnded()
+  }
 
   let bloodNumber: number | null
   try {

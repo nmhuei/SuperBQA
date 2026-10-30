@@ -57,11 +57,22 @@ export const rateLimitInstancerAction = (
     ttlMilliseconds
   )
 
+// burst 2, 1 per 15s per user per challenge
+export const rateLimitCreateInstance = (
+  redis: TypedRedis,
+  userId: string,
+  challengeId: string
+) => rateLimit(redis, `rl:CREATE_INSTANCE:${challengeId}:${userId}`, 2, 30_000)
+
 // burst 5, 1 per 10s per user
 export const rateLimitExternalAuthAuthorize = (
   redis: TypedRedis,
   userId: string
 ) => rateLimit(redis, `rl:EXTERNAL_AUTH_AUTHORIZE:${userId}`, 5, 50_000)
+
+// burst 5, 1 per 2s per IP
+export const rateLimitExternalAuthToken = (redis: TypedRedis, ip: string) =>
+  rateLimit(redis, `rl:EXTERNAL_AUTH_TOKEN:${ip}`, 5, 10_000)
 
 // burst 3, 1 per 1s per IP
 export const rateLimitSearch = (redis: TypedRedis, ip: string) =>

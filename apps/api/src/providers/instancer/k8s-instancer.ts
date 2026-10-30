@@ -151,8 +151,11 @@ const securityContextSchema = z.catchall(
       )
       .check(z.describe('Capabilities')),
     privileged: z
-      .prefault(z.optional(z.boolean()), false)
+      .prefault(z.literal(false), false)
       .check(z.describe('Privileged')),
+    allowPrivilegeEscalation: z
+      .prefault(z.literal(false), false)
+      .check(z.describe('Allow privilege escalation')),
     // technically these should be int64, but we can't represent BigInt in JSON properly :'(
     runAsUser: z
       .optional(z.int().check(z.gte(0)))
@@ -167,9 +170,6 @@ const securityContextSchema = z.catchall(
     readOnlyRootFilesystem: z
       .prefault(z.optional(z.boolean()), false)
       .check(z.describe('Read only root filesystem')),
-    allowPrivilegeEscalation: z
-      .prefault(z.optional(z.boolean()), false)
-      .check(z.describe('Allow privilege escalation')),
   }),
   z.any()
 )
@@ -355,33 +355,6 @@ const containerSchema = z.catchall(
 const volumeSchema = z.catchall(
   z.object({
     name: z.string().check(z.minLength(1), z.describe('Name')),
-
-    // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L924-L936
-    hostPath: z
-      .optional(
-        z.catchall(
-          z.object({
-            path: z.string().check(z.minLength(1), z.describe('Path')),
-            // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L900-L922
-            type: z
-              .optional(
-                z.enum([
-                  '',
-                  'DirectoryOrCreate',
-                  'Directory',
-                  'FileOrCreate',
-                  'File',
-                  'Socket',
-                  'CharDevice',
-                  'BlockDevice',
-                ])
-              )
-              .check(z.describe('Type')),
-          }),
-          z.any()
-        )
-      )
-      .check(z.describe('Host path')),
 
     // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L938-L955
     emptyDir: z

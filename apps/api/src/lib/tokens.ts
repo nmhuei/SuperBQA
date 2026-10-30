@@ -53,9 +53,12 @@ interface InternalTokenData<Kind extends TokenKind> {
   d: TokenDataTypes[Kind]
 }
 
+export const DEFAULT_AUTH_TOKEN_EXPIRY_SECONDS = 7 * 24 * 60 * 60 // 7 days
+export const DEFAULT_TEAM_TOKEN_EXPIRY_SECONDS = 30 * 24 * 60 * 60 // 30 days
+
 export const tokenExpiries: Record<TokenKind, number> = {
-  [TokenKind.Auth]: Infinity,
-  [TokenKind.Team]: Infinity,
+  [TokenKind.Auth]: DEFAULT_AUTH_TOKEN_EXPIRY_SECONDS,
+  [TokenKind.Team]: DEFAULT_TEAM_TOKEN_EXPIRY_SECONDS,
   [TokenKind.Verify]: Math.floor(config.loginTimeout / 1000),
   [TokenKind.CtftimeAuth]: Math.floor(config.loginTimeout / 1000),
 }

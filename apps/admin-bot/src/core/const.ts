@@ -10,7 +10,10 @@ export const defaultMaxLogParamChars = 2048
 //  If you want to live dangerously and need an immediate workaround, you can try using --no-sandbox.
 
 export const defaultChromeArguments: string[] = [
-  '--no-sandbox',
+  ...(process.env.RCTF_CHROME_NO_SANDBOX === 'true' ||
+  process.env.RCTF_CHROME_NO_SANDBOX === '1'
+    ? ['--no-sandbox']
+    : []),
   '--disable-jit',
   '--disable-wasm',
   '--disable-dev-shm-usage',

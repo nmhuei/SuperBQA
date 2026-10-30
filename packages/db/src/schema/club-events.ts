@@ -28,6 +28,7 @@ export const clubEvents = pgTable(
       .defaultNow(),
     published: boolean().notNull().default(false),
     challengeCount: integer('challenge_count').notNull(),
+    clubOnly: boolean('club_only').notNull().default(false),
     archiveId: text('archive_id').references(() => clubArchives.id),
   },
   table => [

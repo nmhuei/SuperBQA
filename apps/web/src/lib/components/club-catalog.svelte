@@ -22,7 +22,13 @@
   import Input from '$lib/ui/input.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
 
-  let { kind = 'archive' }: { kind?: 'archive' | 'events' } = $props()
+  let {
+    kind = 'archive',
+    canManage = false,
+  }: {
+    kind?: 'archive' | 'events'
+    canManage?: boolean
+  } = $props()
   const internal = $derived(kind === 'events')
   let now = $state(Date.now())
   onMount(() => {
@@ -33,11 +39,14 @@
     internal ? clubEventCatalogHref(search) : archiveCatalogHref(search)
   const access = useClubAccess()
   const user = useCurrentUser()
+  const isAuthenticatedUser = $derived(!!user.data && !user.isError)
   const allowed = $derived(
-    access.data?.canAccessArchives === true && !access.isError
+    internal
+      ? true
+      : access.data?.canAccessArchives === true && !access.isError
   )
   const archiveQuery = useClubArchives(() => allowed && !internal)
-  const eventQuery = useClubEvents(() => allowed && internal)
+  const eventQuery = useClubEvents(() => internal)
   const archives = $derived(internal ? eventQuery : archiveQuery)
   const rows = $derived(
     internal
@@ -106,10 +115,10 @@
   {:else if !allowed || denied}
     <div class="status">
       <Card
-        title={internal ? 'Members-only events' : 'Members-only archive'}
-        description={user.data
-          ? 'Ask a club administrator for Member access.'
-          : 'Log in with a member account to continue.'}
+        title={internal ? 'Login required' : 'Members-only archive'}
+        description={!user.data
+          ? 'Log in to view available competitions and events.'
+          : 'Ask a club administrator for Member access.'}
       >
         {#if !user.data}<Button href={loginHref}>Log in</Button>{:else}<Button
             href="/"
@@ -124,6 +133,11 @@
       >
     </div>
   {:else if !archives.data?.length}
+    {#if canManage && internal}
+      <div class="toolbar-create-only">
+        <Button href="/club/events?create=true" size="sm">+ New event</Button>
+      </div>
+    {/if}
     <div class="status">
       <Card
         title={internal ? 'No club events yet' : 'No archived events yet'}
@@ -132,8 +146,8 @@
           : 'Past events will appear here when a club administrator publishes an archive.'}
       >
         {#if access.data?.canManageArchives}<Button
-            href={internal ? '/admin/club/events' : '/admin/club'}
-            >Manage events</Button
+            href="/club/events?create=true"
+            >Create event</Button
           >{/if}
       </Card>
     </div>
@@ -150,11 +164,11 @@
       {#if query}<Button variant="ghost" size="sm" onclick={() => search('')}
           >Clear</Button
         >{/if}
-      <Button
-        href={internal ? '/archive' : '/club/events'}
-        variant="ghost"
-        size="sm">{internal ? 'Archive' : 'Club events'}</Button
-      >
+      {#if canManage && internal}
+        <div class="toolbar-create-action">
+          <Button href="/club/events?create=true" size="sm">+ New event</Button>
+        </div>
+      {/if}
     </div>
     <!-- The event catalogue is a keyboard-scrollable reading region. -->
     <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
@@ -167,19 +181,19 @@
       {#each visible as event (event.id)}
         {@const available = event.practiceChallengeCount}
         {@const solved = Math.min(event.solvedCount ?? 0, available ?? 0)}
-        <a
-          class="event-card"
-          href={internal
-            ? clubEventChallengeHref(event.id, { catalogQuery: query })
-            : archiveChallengeHref(event.id, { catalogQuery: query })}
-          aria-label={`Open challenges: ${event.name}`}
-        >
+        {@const eventHref = internal
+          ? clubEventChallengeHref(event.id, { catalogQuery: query })
+          : archiveChallengeHref(event.id, { catalogQuery: query })}
+        <div class="event-card">
           <div class="event-cover" aria-hidden="true">
             <ClubDetailGeometry seed={event.id} />
             <div class="cover-telemetry">
               <span class="cover-code">EVT://0x{event.id.slice(0, 4).toUpperCase()}</span>
               {#if internal}
                 <span class="cover-phase" data-live={event.phase === 'live' || undefined}>{event.phase.toUpperCase()}</span>
+                {#if 'clubOnly' in event && event.clubOnly}
+                  <span class="cover-phase" style="border-color: rgba(0, 255, 102, 0.5); color: var(--club-lime);">CLUB ONLY</span>
+                {/if}
               {/if}
             </div>
             <span>{month(event.endTime)}</span><strong
@@ -187,7 +201,11 @@
             >
           </div>
           <div class="event-content">
-            <h2>{event.name}</h2>
+            <h2>
+              <a class="event-card-link" href={eventHref}>
+                {event.name}
+              </a>
+            </h2>
             {#if internal}<p
                 class="event-phase"
                 data-live={event.phase === 'live' || undefined}
@@ -230,15 +248,25 @@
                 ></progress>
               </div>
             {/if}
-            <span class="open-event"
-              >{internal
-                ? 'Open event'
-                : solved > 0
-                  ? 'Continue practice'
-                  : 'Open challenges'}<span aria-hidden="true">↗</span></span
-            >
+            <div class="card-footer-actions">
+              <span class="open-event"
+                >{internal
+                  ? 'Open event'
+                  : solved > 0
+                    ? 'Continue practice'
+                    : 'Open challenges'}<span aria-hidden="true">↗</span></span
+              >
+              {#if canManage && internal}
+                <a
+                  class="manage-card-btn"
+                  href={`/club/events?manage=${encodeURIComponent(event.id)}`}
+                >
+                  Manage
+                </a>
+              {/if}
+            </div>
           </div>
-        </a>
+        </div>
       {:else}<div class="no-matches">
           <p>No events match this search.</p>
           <Button variant="outline" onclick={() => search('')}
@@ -271,6 +299,14 @@
     opacity: 0.35;
     mask-image: radial-gradient(ellipse 90% 75% at 50% 25%, #000c 30%, transparent 85%);
   }
+  .toolbar-create-action {
+    margin-inline-start: auto;
+  }
+  .toolbar-create-only {
+    display: flex;
+    justify-content: flex-end;
+    margin-block-end: 1rem;
+  }
   .archive-toolbar {
     display: flex;
     align-items: center;
@@ -298,6 +334,7 @@
     outline-offset: -2px;
   }
   .event-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     min-inline-size: 0;
@@ -313,6 +350,23 @@
   }
   .event-card:hover {
     border-color: var(--club-accent-text);
+  }
+  .event-card-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .event-card-link:hover {
+    color: var(--club-accent-text);
+  }
+  .event-card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .event-card-link:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   .event-card:focus-visible {
     outline: 2px solid var(--ring);
@@ -339,9 +393,10 @@
     text-transform: uppercase;
   }
   .event-cover > strong {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 600;
   }
   .cover-telemetry {
     position: absolute;
@@ -367,6 +422,8 @@
     border-radius: 2px;
     background: var(--club-accent-soft);
     color: var(--club-accent-text);
+    font-family: var(--font-sans);
+    font-weight: 700;
   }
   .cover-phase[data-live] {
     background: var(--club-lime, #00ff66);
@@ -436,6 +493,45 @@
   }
   progress::-moz-progress-bar {
     background: var(--club-accent-text);
+  }
+  .card-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-block-start: 0.75rem;
+    margin-block-start: auto;
+    border-block-start: 1px solid var(--club-border);
+    position: relative;
+    z-index: 2;
+  }
+  .card-footer-actions .open-event {
+    padding-block-start: 0;
+    margin-block-start: 0;
+    border-block-start: none;
+  }
+  .manage-card-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-sm);
+    background: var(--club-accent-soft);
+    border: 1px solid rgba(0, 255, 128, 0.4);
+    color: var(--club-accent-text);
+    font-size: 0.75rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+  }
+  .manage-card-btn:hover {
+    background: var(--club-accent-text);
+    color: #080c0a;
+    box-shadow: 0 0 10px rgba(0, 255, 128, 0.4);
   }
   .open-event {
     display: flex;

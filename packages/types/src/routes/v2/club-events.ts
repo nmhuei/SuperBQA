@@ -9,6 +9,11 @@ import {
   GoodClubEvent,
   GoodClubEventSubmit,
   GoodClubEventArchive,
+  GoodClubEventSubmissions,
+  GoodClubEventSolveDelete,
+  GoodClubEventChallengesAdd,
+  GoodClubEventChallengeDelete,
+  GoodClubTeamProgress,
   BadClubEvent,
   BadClubEventSchedule,
   BadClubEventSelection,
@@ -24,7 +29,8 @@ const common = { authRequired: true, rejectBanned: true } as const
 const errors = [BadBody, BadPerms, BadToken, BadClubEvent] as const
 
 export const GetClubEventsRouteV2 = defineRoute({
-  ...common,
+  rejectBanned: true,
+  optionalAuth: true,
   path: '/v2/club/events',
   method: 'GET',
   goodResponses: [GoodClubEvents],
@@ -41,6 +47,7 @@ export const CreateClubEventRouteV2 = defineRoute({
     startTime: time,
     endTime: time,
     published: z._default(z.boolean(), false),
+    clubOnly: z._default(z.boolean(), false),
     sourceArchiveId: z.optional(z.string()),
     challengeIds: z.array(z.string()).check(z.minLength(1), z.maxLength(1000)),
   }),
@@ -59,12 +66,14 @@ export const UpdateClubEventRouteV2 = defineRoute({
     startTime: z.optional(time),
     endTime: z.optional(time),
     published: z.optional(z.boolean()),
+    clubOnly: z.optional(z.boolean()),
   }),
   goodResponses: [GoodClubEventUpdate],
   badResponses: [...errors, BadClubEventSchedule, BadClubEventFrozen],
 })
 export const GetClubEventRouteV2 = defineRoute({
-  ...common,
+  rejectBanned: true,
+  optionalAuth: true,
   path: '/v2/club/events/:id',
   method: 'GET',
   params: idParams,
@@ -90,4 +99,50 @@ export const ArchiveClubEventRouteV2 = defineRoute({
   params: idParams,
   goodResponses: [GoodClubEventArchive],
   badResponses: [...errors, BadClubEventClosed],
+})
+export const GetClubEventSubmissionsRouteV2 = defineRoute({
+  ...common,
+  path: '/v2/club/events/:id/submissions',
+  method: 'GET',
+  permissions: Permissions.settingsWrite,
+  params: idParams,
+  goodResponses: [GoodClubEventSubmissions],
+  badResponses: errors,
+})
+export const DeleteClubEventSolveRouteV2 = defineRoute({
+  ...common,
+  path: '/v2/club/events/:id/solves/:solveId',
+  method: 'DELETE',
+  permissions: Permissions.settingsWrite,
+  params: z.object({ id: z.string(), solveId: z.string() }),
+  goodResponses: [GoodClubEventSolveDelete],
+  badResponses: errors,
+})
+export const AddClubEventChallengesRouteV2 = defineRoute({
+  ...common,
+  path: '/v2/club/events/:id/challenges',
+  method: 'POST',
+  permissions: Permissions.settingsWrite,
+  params: idParams,
+  body: z.object({
+    challengeIds: z.array(z.string()).check(z.minLength(1)),
+  }),
+  goodResponses: [GoodClubEventChallengesAdd],
+  badResponses: errors,
+})
+export const DeleteClubEventChallengeRouteV2 = defineRoute({
+  ...common,
+  path: '/v2/club/events/:id/challenges/:challengeId',
+  method: 'DELETE',
+  permissions: Permissions.settingsWrite,
+  params: z.object({ id: z.string(), challengeId: z.string() }),
+  goodResponses: [GoodClubEventChallengeDelete],
+  badResponses: errors,
+})
+export const GetClubTeamProgressRouteV2 = defineRoute({
+  ...common,
+  path: '/v2/club/team-progress',
+  method: 'GET',
+  goodResponses: [GoodClubTeamProgress],
+  badResponses: errors,
 })

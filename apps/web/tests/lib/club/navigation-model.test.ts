@@ -12,28 +12,23 @@ describe('role navigation', () => {
         user: { perms: 0 },
         access: guest,
       })
-      expect(paths(nav.main)).toEqual(['/', '/rules', '/challenges', '/scores'])
+      expect(paths(nav.main)).toEqual(['/', '/rules', '/club/events', '/scores'])
       expect(nav.main[0]?.label).toBe('Home')
+      expect(nav.main[2]?.label).toBe('Club events')
       expect(nav.admin).toEqual([])
     })
-    test(`Member adds private destinations in ${mode} mode`, () => {
+    test(`Member keeps all public destinations in ${mode} mode`, () => {
       const nav = getNavigationModel({
         mode,
         user: { perms: 0 },
         access: member,
       })
-      expect(paths(nav.main)).toEqual([
-        '/',
-        '/rules',
-        '/challenges',
-        '/scores',
-        '/club/events',
-        '/archive',
-      ])
+      expect(paths(nav.main)).toEqual(['/', '/rules', '/club/events', '/scores'])
+      expect(nav.main[2]?.label).toBe('Club events')
       expect(nav.admin).toEqual([])
     })
   }
-  test('anonymous/pending/failed access never reveals private navigation', () => {
+  test('anonymous/pending/failed access keeps standard public navigation', () => {
     for (const input of [
       { user: null, access: member },
       { user: { perms: 0 } },
@@ -41,7 +36,7 @@ describe('role navigation', () => {
       { user: { perms: 63 }, access: member, userError: true },
     ]) {
       const nav = getNavigationModel({ mode: 'club', ...input })
-      expect(paths(nav.main)).toEqual(['/', '/rules', '/challenges', '/scores'])
+      expect(paths(nav.main)).toEqual(['/', '/rules', '/club/events', '/scores'])
       expect(nav.admin).toEqual([])
     }
   })
@@ -53,10 +48,10 @@ describe('role navigation', () => {
     })
     expect(paths(nav.admin)).toEqual([
       '/admin/club',
-      '/admin/club/events',
+      '/club/events?manage=true',
       '/admin/settings',
     ])
-    expect(paths(nav.main)).toContain('/archive')
+    expect(paths(nav.main)).not.toContain('/archive')
   })
   test('challenge read only cannot imply membership or settings access', () => {
     const nav = getNavigationModel({
@@ -74,7 +69,7 @@ describe('role navigation', () => {
       access: member,
     })
     expect(paths(nav.admin)).toContain('/admin/submissions')
-    expect(paths(nav.admin)).not.toContain('/admin/club/events')
+    expect(paths(nav.admin)).not.toContain('/club/events?manage=true')
     expect(new Set(paths(nav.admin)).size).toBe(nav.admin.length)
   })
 })

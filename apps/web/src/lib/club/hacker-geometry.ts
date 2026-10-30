@@ -248,10 +248,7 @@ export function generateNetworkIllustrationData(seedVal: string | number) {
 }
 
 // 4. PURE 3D PERSPECTIVE CYBER GRID DATA
-export function generateGridIllustrationData(seedVal: string | number) {
-  const seed = hashString(seedVal)
-  const prng = createPrng(seed)
-
+export function generateGridIllustrationData(_seedVal?: string | number) {
   const horizonY = 240
   const vanishingX = 500
 
@@ -291,10 +288,7 @@ export function generateGridIllustrationData(seedVal: string | number) {
 }
 
 // 5. PURE CYBER SHIELD CREST DATA
-export function generateShieldIllustrationData(seedVal: string | number) {
-  const seed = hashString(seedVal)
-  const prng = createPrng(seed)
-
+export function generateShieldIllustrationData(_seedVal?: string | number) {
   const cx = 500
   const cy = 325
 

@@ -46,3 +46,39 @@ export function clubEventPhase(
   if (now < event.startTime) return 'upcoming'
   return now < event.endTime ? 'live' : 'ended'
 }
+
+export function prioritizeClubEvents<
+  T extends { startTime: number; endTime: number; published: boolean }
+>(events: T[], now: number): T[] {
+  const live: T[] = []
+  const upcoming: T[] = []
+  const ended: T[] = []
+  const drafts: T[] = []
+
+  for (const event of events) {
+    const phase = clubEventPhase(event, now)
+    if (phase === 'live') {
+      live.push(event)
+    } else if (phase === 'upcoming') {
+      upcoming.push(event)
+    } else if (phase === 'ended') {
+      ended.push(event)
+    } else {
+      drafts.push(event)
+    }
+  }
+
+  // Live events: prioritize earliest active (smallest startTime first)
+  live.sort((a, b) => a.startTime - b.startTime)
+
+  // Upcoming events: prioritize starting soonest (smallest startTime first)
+  upcoming.sort((a, b) => a.startTime - b.startTime)
+
+  // Ended events: prioritize most recently ended (largest endTime first)
+  ended.sort((a, b) => b.endTime - a.endTime)
+
+  // Drafts: latest first
+  drafts.sort((a, b) => b.startTime - a.startTime)
+
+  return [...live, ...upcoming, ...ended, ...drafts]
+}

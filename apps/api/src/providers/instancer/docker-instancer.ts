@@ -89,8 +89,8 @@ const serviceSchema = z.object({
     )
     .check(z.describe('Networks to connect to')),
   network_mode: z
-    .optional(z.enum(['bridge', 'host', 'none']))
-    .check(z.describe('Network mode (e.g., host, bridge)')),
+    .optional(z.enum(['bridge', 'none']))
+    .check(z.describe('Network mode (e.g., bridge, none)')),
   dns: z
     .optional(z.prefault(z.array(z.union([z.ipv4(), z.ipv6()])), []))
     .check(z.describe('Custom DNS servers')),
@@ -213,8 +213,8 @@ const serviceSchema = z.object({
     .optional(z.prefault(z.boolean(), true))
     .check(z.describe('Read-only root filesystem')),
   privileged: z
-    .optional(z.prefault(z.boolean(), false))
-    .check(z.describe('Privileged mode')),
+    .prefault(z.literal(false), false)
+    .check(z.describe('Privileged mode (must be false for safety)')),
   security_opt: z
     .optional(
       z.prefault(z.array(z.string().check(z.minLength(1), z.maxLength(255))), [
@@ -337,7 +337,7 @@ const defaultService = {
   volumes: [],
   tmpfs: { '/tmp': 'rw,noexec,nosuid,nodev,size=65536k' },
   read_only: true,
-  privileged: false,
+  privileged: false as const,
   security_opt: ['no-new-privileges'],
   cap_add: [] as (typeof linux.CAPABILITIES)[number][],
   cap_drop: ['ALL'] as (typeof linux.CAPABILITIES)[number][],

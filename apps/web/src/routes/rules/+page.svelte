@@ -74,9 +74,7 @@
     margin-bottom: 1.5rem;
   }
   .rules-content :global(prose-content [data-timer]) {
-    display: flex;
-    justify-content: center;
-    margin-block: 1.5rem;
+    display: none !important;
   }
   .rules-content :global(prose-content > hr) {
     border-color: rgba(0, 255, 102, 0.2);

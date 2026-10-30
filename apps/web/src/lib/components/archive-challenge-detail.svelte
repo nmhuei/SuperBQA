@@ -25,6 +25,7 @@
   import Input from '$lib/ui/input.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
+  import { sanitizeFileUrl } from '$lib/utils/download'
   import { getContext, onDestroy, onMount, untrack } from 'svelte'
 
   interface Props {
@@ -66,6 +67,35 @@
   let feedback = $state('')
   let success = $state(false)
   let confirmedSolved = $state(false)
+  let rateLimitTimer: ReturnType<typeof setInterval> | null = null
+  let rateLimitSeconds = $state(0)
+
+  function startRateLimitCountdown(seconds: number) {
+    if (rateLimitTimer) clearInterval(rateLimitTimer)
+    rateLimitSeconds = seconds
+    success = false
+    feedback = `Too many attempts. Try again in ${rateLimitSeconds} second${rateLimitSeconds === 1 ? '' : 's'}.`
+    rateLimitTimer = setInterval(() => {
+      rateLimitSeconds -= 1
+      if (rateLimitSeconds <= 0) {
+        if (rateLimitTimer) clearInterval(rateLimitTimer)
+        rateLimitTimer = null
+        rateLimitSeconds = 0
+        feedback = ''
+      } else {
+        feedback = `Too many attempts. Try again in ${rateLimitSeconds} second${rateLimitSeconds === 1 ? '' : 's'}.`
+      }
+    }, 1000)
+  }
+
+  function clearRateLimitTimer() {
+    if (rateLimitTimer) {
+      clearInterval(rateLimitTimer)
+      rateLimitTimer = null
+    }
+    rateLimitSeconds = 0
+  }
+
   const isSolved = $derived(solved || confirmedSolved)
   const scope = $derived(
     JSON.stringify([mode, archiveId, challenge.id, user.data?.id ?? null])
@@ -106,11 +136,15 @@
         requests.refresh()
     })
   )
-  onDestroy(() => requests.dispose())
+  onDestroy(() => {
+    requests.dispose()
+    clearRateLimitTimer()
+  })
 
   $effect(() => {
     void scope
     untrack(() => requests.refresh())
+    clearRateLimitTimer()
     flag = ''
     feedback = ''
     success = false
@@ -127,6 +161,7 @@
     void user.data?.id
     requests.refresh()
     if (!authorized) {
+      clearRateLimitTimer()
       flag = ''
       feedback = ''
       submitting = false
@@ -141,6 +176,7 @@
       !challenge.practiceAvailable ||
       isSolved ||
       submitting ||
+      rateLimitSeconds > 0 ||
       !flag.trim()
     )
       return
@@ -158,8 +194,6 @@
       title: challenge.name,
     })
     submitting = true
-    feedback = ''
-    success = false
     try {
       const args = {
         id: request.archiveId,
@@ -177,8 +211,11 @@
       ) {
         if (response.kind === BadRateLimit.kind) {
           const seconds = Math.max(1, Math.ceil(response.data.timeLeft / 1000))
-          feedback = `Too many attempts. Try again in ${seconds} second${seconds === 1 ? '' : 's'}.`
-        } else feedback = response.message
+          startRateLimitCountdown(seconds)
+        } else {
+          feedback = response.message
+          success = false
+        }
         if (response.kind === 'badPerms' || response.kind === 'badToken')
           void access.refetch()
         return
@@ -195,6 +232,7 @@
               : 'You have already solved this challenge in practice.'
             : 'Incorrect flag. Try again.'
       if (!success) return
+      clearRateLimitTimer()
       flag = ''
       confirmedSolved = true
       if (response.data.result === 'correct') {
@@ -239,8 +277,10 @@
         }),
       ])
     } catch {
-      if (requests.isCurrent(request))
+      if (requests.isCurrent(request)) {
         feedback = 'The flag could not be checked. Please try again.'
+        success = false
+      }
     } finally {
       if (requests.isCurrent(request)) submitting = false
     }
@@ -266,13 +306,12 @@
       <div class="heading-row">
         <div class="heading-main">
           <span class="category" data-category-color={category.color}
-            ><category.icon />{category.name}</span
+            >{category.name}</span
           >
           <h2>{challenge.name}</h2>
-          <p class="metadata">
-            {#if challenge.author}By {challenge.author} ·
-            {/if}{challenge.solves.toLocaleString()} event solves
-          </p>
+          {#if challenge.author}
+            <p class="metadata">By {challenge.author}</p>
+          {/if}
         </div>
         <div class="event-points">
           <strong>{challenge.points.toLocaleString()}</strong><span
@@ -292,7 +331,7 @@
         <div class="files">
           <h3>Challenge files</h3>
           {#each challenge.files as file}
-            <a href={file.url} target="_blank" rel="noopener noreferrer"
+            <a href={sanitizeFileUrl(file.url)} target="_blank" rel="noopener noreferrer"
               ><span class="file-name">↓ {file.name}</span><span
                 class="file-size"
                 >{file.size === null
@@ -326,7 +365,8 @@
           <Input
             id={`${id}-flag`}
             bind:value={flag}
-            disabled={submitting || !submissionOpen}
+            disabled={!submissionOpen}
+            readonly={submitting}
             placeholder="Enter flag"
             autocomplete="off"
             autocorrect="off"
@@ -339,10 +379,10 @@
           <button
             class="submit"
             type="submit"
-            disabled={submitting || !submissionOpen || !flag.trim()}
-            aria-label={submitting ? 'Checking flag' : 'Submit flag'}
-            title="Submit flag"
-            >{#if submitting}<Spinner />{:else}<IconPaperPlaneTilt
+            disabled={submitting || !submissionOpen || !flag.trim() || rateLimitSeconds > 0}
+            aria-label={submitting ? 'Checking flag' : rateLimitSeconds > 0 ? `Wait ${rateLimitSeconds} seconds` : 'Submit flag'}
+            title={rateLimitSeconds > 0 ? `Try again in ${rateLimitSeconds}s` : 'Submit flag'}
+            >{#if submitting}<Spinner />{:else if rateLimitSeconds > 0}<span class="rate-limit-badge">{rateLimitSeconds}s</span>{:else}<IconPaperPlaneTilt
               />{/if}</button
           >
         </form>
@@ -352,6 +392,7 @@
           class="feedback"
           class:success
           role="status"
+          aria-live="polite"
         >
           {feedback}
         </p>{/if}
@@ -616,11 +657,19 @@
     font-weight: 500;
   }
 
+  .rate-limit-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--club-muted);
+  }
+
   .feedback {
     margin-block-start: 0.5rem;
     color: var(--foreground-destructive);
     font-size: 0.75rem;
     overflow-wrap: anywhere;
+    transition: color 0.15s ease;
   }
 
   .feedback.success {

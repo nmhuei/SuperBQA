@@ -26,8 +26,6 @@ interface NavigationInput {
 // Presentation only. Server routes independently enforce identity, permission and event scope.
 export function getNavigationModel(input: NavigationInput) {
   const user = input.userError ? null : input.user
-  const privateAccess =
-    !!user && !input.accessError && input.access?.canAccessArchives === true
   const main: NavigationItem[] = [
     {
       id: 'home',
@@ -37,23 +35,13 @@ export function getNavigationModel(input: NavigationInput) {
     },
     { id: 'rules', href: '/rules', label: 'Rules', icon: 'rules' },
     {
-      id: 'challenges',
-      href: '/challenges',
-      label: 'Challenges',
+      id: 'club-events',
+      href: '/club/events',
+      label: 'Club events',
       icon: 'challenges',
     },
     { id: 'scores', href: '/scores', label: 'Scoreboard', icon: 'scores' },
   ]
-  if (privateAccess)
-    main.push(
-      {
-        id: 'club-events',
-        href: '/club/events',
-        label: 'Club events',
-        icon: 'challenges',
-      },
-      { id: 'archive', href: '/archive', label: 'Archive', icon: 'archive' }
-    )
   const settings = hasPermissions(user, Permissions.settingsWrite)
   const members = hasPermissions(user, Permissions.usersWrite)
   const challenges = hasPermissions(user, Permissions.challsRead)
@@ -68,7 +56,7 @@ export function getNavigationModel(input: NavigationInput) {
   if (settings)
     admin.push({
       id: 'admin-events',
-      href: '/admin/club/events',
+      href: '/club/events?manage=true',
       label: 'Manage events',
       icon: 'challenges',
     })

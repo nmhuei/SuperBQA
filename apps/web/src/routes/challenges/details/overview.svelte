@@ -6,7 +6,7 @@
   import Button from '$lib/ui/button.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import { downloadAll } from '$lib/utils/download'
+  import { downloadAll, sanitizeFileUrl } from '$lib/utils/download'
   import { formatFileSize } from '$lib/utils/filesize'
   import { onDestroy } from 'svelte'
   import ChallengeDetailsOverviewAdminbot from './overview-adminbot.svelte'
@@ -44,7 +44,7 @@
         <files-box>
           <file-list tabindex="-1">
             {#each challenge.files as file (file.url)}
-              <a href={file.url} target="_blank" rel="noopener noreferrer">
+              <a href={sanitizeFileUrl(file.url)} target="_blank" rel="noopener noreferrer">
                 <IconFiles data-slot="icon" />
                 <file-meta>
                   <span data-slot="name">{file.name}</span>

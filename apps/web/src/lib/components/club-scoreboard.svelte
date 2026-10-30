@@ -26,8 +26,11 @@
   })
   const userQuery = useCurrentUser()
   const access = useClubAccess()
+  const isAuthenticated = $derived(!!userQuery.data && !userQuery.isError)
   const allowed = $derived(
-    access.data?.canAccessArchives === true && !access.isError
+    internal
+      ? isAuthenticated
+      : access.data?.canAccessArchives === true && !access.isError
   )
   const archiveQuery = useClubArchive(
     () => page.params.id ?? '',

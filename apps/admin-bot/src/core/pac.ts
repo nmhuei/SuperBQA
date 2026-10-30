@@ -44,6 +44,15 @@ export const buildPac = (
   processRules('host', restrictedDomains.host)
   processRules('url', restrictedDomains.url)
 
+  // Built-in SSRF protection against loopback, private networks, and cloud metadata (including DNS Rebinding)
+  body += `
+  const _isPrivateHost = /^(localhost|127\\.\\d+\\.\\d+\\.\\d+|10\\.\\d+\\.\\d+\\.\\d+|192\\.168\\.\\d+\\.\\d+|172\\.(1[6-9]|2\\d|3[0-1])\\.\\d+\\.\\d+|169\\.254\\.\\d+\\.\\d+|0\\.0\\.0\\.0|\\[?::1\\]?)$/i;
+  if (_isPrivateHost.test(host)) return "PROXY 127.0.0.1:1";
+  if (typeof dnsResolve === 'function') {
+    const _ip = dnsResolve(host);
+    if (_ip && _isPrivateHost.test(_ip)) return "PROXY 127.0.0.1:1";
+  }`
+
   body += '\n  return "DIRECT";'
 
   return preamble + 'function FindProxyForURL(url, host) {' + body + '\n}'

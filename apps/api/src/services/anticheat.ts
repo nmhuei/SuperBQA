@@ -38,20 +38,35 @@ export const checkTeamIpLimit = async (
   const normalizedIp = clientIp.trim().replace(/^::ffff:/, '')
   const setKey = `anticheat:team_ips:${user.id}`
 
-  // 1. Check if IP is already registered for this team
-  const isMember = await redis.sismember(setKey, normalizedIp)
-  if (isMember) {
-    return { allowed: true }
-  }
+  // Atomic IP check & registration via Lua to prevent race conditions
+  const allowed = await (redis as any).eval(
+    `
+    local key = KEYS[1]
+    local ip = ARGV[1]
+    local maxIps = tonumber(ARGV[2])
+    local ttl = tonumber(ARGV[3])
 
-  // 2. Count current registered IPs
-  const count = await redis.scard(setKey)
+    if redis.call('sismember', key, ip) == 1 then
+      return 1
+    end
 
-  if (count < MAX_IPS_PER_TEAM) {
-    // Add new IP to team's allowed set
-    await redis.sadd(setKey, normalizedIp)
-    // 14 days expiration
-    await redis.expire(setKey, 14 * 86400)
+    local count = redis.call('scard', key)
+    if count < maxIps then
+      redis.call('sadd', key, ip)
+      redis.call('expire', key, ttl)
+      return 1
+    end
+
+    return 0
+    `,
+    1,
+    setKey,
+    normalizedIp,
+    MAX_IPS_PER_TEAM.toString(),
+    (14 * 86400).toString()
+  )
+
+  if (allowed === 1) {
     return { allowed: true }
   }
 

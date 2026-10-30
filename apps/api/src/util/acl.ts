@@ -46,7 +46,8 @@ const compileACLs = (): CompiledACL[] => {
 export const compiledACLs = compileACLs()
 
 export const allDivisions = Object.keys(config.divisions)
-export const defaultDivision = config.defaultDivision || allDivisions[0]
+export const defaultDivision: string =
+  config.defaultDivision || allDivisions[0] || 'default'
 
 export const allowedDivisions = ({
   email,
@@ -54,10 +55,13 @@ export const allowedDivisions = ({
 }: {
   email: string | null | undefined
   defaultOnly: boolean
-}): (string | undefined)[] => {
-  // No ACLs with ctftime auth
-  if (config.ctftime || !config.divisionACLs || !email || !config.email) {
+}): string[] => {
+  if (!config.divisionACLs) {
     return defaultOnly ? [defaultDivision] : allDivisions
+  }
+
+  if (!email || !config.email) {
+    return [defaultDivision]
   }
 
   let result: string[] = []
@@ -67,7 +71,11 @@ export const allowedDivisions = ({
     }
   }
 
-  return result
+  if (result.length === 0) {
+    result.push(defaultDivision)
+  }
+
+  return defaultOnly ? [defaultDivision] : Array.from(new Set(result))
 }
 
 export const divisionAllowed = (

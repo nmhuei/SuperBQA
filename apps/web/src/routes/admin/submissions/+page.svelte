@@ -220,6 +220,10 @@
         minTableWidth={1180}
       >
         {#snippet toolbar()}
+          <div class="event-subs-banner">
+            <span>Manage flag submissions by event:</span>
+            <a href="/club/events?manage=true">Go to Event & Challenge Management ↗</a>
+          </div>
           <submissions-toolbar>
             <FilterBar
               {families}
@@ -282,6 +286,24 @@
     flex: 1;
     flex-direction: column;
     min-block-size: 0;
+  }
+
+  .event-subs-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    margin-block-end: 0.75rem;
+    background: rgba(0, 255, 128, 0.08);
+    border: 1px solid rgba(0, 255, 128, 0.3);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    color: var(--foreground-l1);
+  }
+  .event-subs-banner a {
+    color: var(--club-accent-text, #00ff80);
+    font-weight: 600;
+    text-decoration: underline;
   }
 
   submissions-page {

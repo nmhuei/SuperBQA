@@ -99,6 +99,7 @@ const form = {
   name: '  Club Night  ',
   description: 'Details',
   published: true,
+  clubOnly: true,
   start: formatDatetimeLocal(current.startTime),
   end: formatDatetimeLocal(current.endTime),
 }
@@ -111,6 +112,7 @@ describe('private event schedule edits', () => {
       name: 'Club Night',
       description: 'Details',
       published: true,
+      clubOnly: true,
       startTime: 1_800_000_000_123,
       endTime: 1_800_003_600_456,
     })

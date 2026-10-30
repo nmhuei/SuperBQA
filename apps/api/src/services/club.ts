@@ -33,7 +33,10 @@ export const getClubAccess = async (
         .leftJoin(clubMemberships, eq(clubMemberships.userId, users.id))
         .where(eq(users.id, user.id))
     : []
-  const role = current?.memberId ? ('member' as const) : ('guest' as const)
+  const role =
+    current && !current.banned && current.memberId
+      ? ('member' as const)
+      : ('guest' as const)
   const canManageMembers = Boolean(
     current && !current.banned && current.perms & Permissions.usersWrite
   )

@@ -1,8 +1,6 @@
 <script lang="ts">
   import {
-    CreateClubArchiveRouteV2,
     GoodAdminSettingsUpdate,
-    GoodClubArchiveCreate,
     GoodClubMemberUpdate,
     UpdateAdminSettingsRouteV2,
     UpdateClubMemberRouteV2,
@@ -10,7 +8,6 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { onMount } from 'svelte'
   import { apiRequest } from '$lib/api'
-  import { archiveChallengeHref } from '$lib/club/archive-model'
   import { useAdminSettings } from '$lib/query/admin'
   import {
     CLUB_MEMBERS_PAGE_SIZE,
@@ -54,12 +51,8 @@
   let noticeError = $state(false)
   let now = $state(Date.now())
   let openEventDialog = $state(false)
-  let archiveDialog = $state(false)
   let eventEnd = $state('')
-  let archiveName = $state('')
-  let archiveDescription = $state('')
   let dialogError = $state('')
-  let lastArchiveId = $state('')
   const mode = $derived(
     settings.data?.overrides.clubMode ??
       settings.data?.defaults.clubMode ??
@@ -190,44 +183,6 @@
     )
       openEventDialog = false
   }
-  function prepareArchive() {
-    archiveName = eventName
-    archiveDescription = ''
-    dialogError = ''
-    archiveDialog = true
-  }
-  async function createArchive(event: SubmitEvent) {
-    event.preventDefault()
-    if (!eventEnded) {
-      dialogError = 'Close the event before creating its archive.'
-      return
-    }
-    saving = true
-    dialogError = ''
-    try {
-      const response = await apiRequest(CreateClubArchiveRouteV2, {
-        name: archiveName.trim() || undefined,
-        description: archiveDescription.trim() || undefined,
-      })
-      if (response.kind !== GoodClubArchiveCreate.kind) {
-        dialogError = response.message
-        return
-      }
-      lastArchiveId = response.data.id
-      archiveDialog = false
-      await queryClient.invalidateQueries({ queryKey: clubQueryKeys.archives })
-      message(
-        'Event archived. Members can now practice its supported challenges.'
-      )
-    } catch (error) {
-      dialogError =
-        error instanceof Error
-          ? error.message
-          : 'The event could not be archived. Please retry.'
-    } finally {
-      saving = false
-    }
-  }
 </script>
 
 <svelte:head><title>Club management | Admin</title></svelte:head>
@@ -235,8 +190,7 @@
 <section class="admin-club" aria-labelledby="club-admin-title">
   <h1 id="club-admin-title" data-visually-hidden>Club management</h1>
   {#if notice}<p class="notice" class:error={noticeError} role="status">
-      {notice}{#if lastArchiveId && !noticeError}
-        <a href={archiveChallengeHref(lastArchiveId)}>View archive ↗</a>{/if}
+      {notice}
     </p>{/if}
   {#if access.isPending}<div class="status" role="status">
       <Spinner />
@@ -365,7 +319,7 @@
       <aside class="event-panel" aria-label="Event management">
         {#if !canManageArchives}<Card
             title="Event management"
-            description="Event-settings permission is required to change modes, close events, and create archives."
+            description="Event-settings permission is required to change modes and close events."
             ><Button href="/challenges" variant="outline"
               >View current event</Button
             ></Card
@@ -441,13 +395,6 @@
                   )}>Close event</Button
               >
             </div>
-            <Button
-              size="sm"
-              disabled={saving || !eventEnded}
-              onclick={prepareArchive}>Create archive</Button
-            >{#if !eventEnded}<p class="help">
-                Close the current event before archiving.
-              </p>{/if}
           </section>
         {/if}
       </aside>
@@ -479,39 +426,6 @@
         <Button variant="ghost" {...closeProps} disabled={saving}>Cancel</Button
         ><Button type="submit" disabled={saving}
           >{saving ? 'Saving…' : 'Open event'}</Button
-        >
-      </div>
-    </form>{/snippet}
-</Dialog>
-<Dialog
-  bind:open={archiveDialog}
-  title="Create event archive"
-  description="Save a permanent snapshot of final results and public challenges. Current event data will be kept."
->
-  {#snippet children({ closeProps })}<form
-      class="dialog-form"
-      onsubmit={createArchive}
-    >
-      <label for="archive-name">Archive name</label><Input
-        id="archive-name"
-        bind:value={archiveName}
-        maxlength={200}
-        required
-      /><label for="archive-description"
-        >Description <span class="optional">(optional)</span></label
-      ><textarea
-        id="archive-description"
-        bind:value={archiveDescription}
-        maxlength={5000}
-        rows="3"
-        placeholder="A short note about this event"
-      ></textarea>{#if dialogError}<p class="form-error" role="alert">
-          {dialogError}
-        </p>{/if}
-      <div class="dialog-actions">
-        <Button variant="ghost" {...closeProps} disabled={saving}>Cancel</Button
-        ><Button type="submit" disabled={saving}
-          >{saving ? 'Creating…' : 'Create archive'}</Button
         >
       </div>
     </form>{/snippet}
@@ -741,10 +655,6 @@
   .form-error {
     color: var(--foreground-destructive, #e39999);
   }
-  .notice a {
-    color: inherit;
-    text-underline-offset: 3px;
-  }
   .status {
     display: flex;
     flex: 1;
@@ -770,23 +680,6 @@
   .dialog-form label {
     font-size: 0.8rem;
     color: var(--foreground-l1);
-  }
-  .optional {
-    color: var(--club-muted);
-  }
-  textarea {
-    resize: vertical;
-    inline-size: 100%;
-    padding: 0.65rem;
-    color: var(--foreground-l0);
-    background: var(--background-l2);
-    border: 1px solid var(--club-border);
-    border-radius: var(--radius-sm);
-    font: inherit;
-    font-size: 0.8rem;
-  }
-  textarea:focus-visible {
-    outline: 2px solid var(--ring);
   }
   .dialog-actions {
     justify-content: flex-end;
